@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.inventory",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "inventory",
+  "entrypoint": "./plugins/inventory/index.js",
+  "models": [
+    "inventory.item",
+    "inventory.location",
+    "inventory.stock_movement"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "inventory"
+  },
+  "extension_points": [
+    "inventory.validators@1",
+    "inventory.commands@1",
+    "inventory.projectors@1",
+    "inventory.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.inventory.models@1",
+      "domain.inventory.queries@1",
+      "domain.inventory.commands@1"
+    ],
+    "requires": []
+  }
+}

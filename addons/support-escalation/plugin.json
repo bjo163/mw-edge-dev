@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.support.escalation",
+  "kind": "addon",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "support",
+  "entrypoint": "./addons/support-escalation/index.js",
+  "models": [
+    "support.escalation"
+  ],
+  "extends": "mw.support",
+  "requires": [
+    "mw.support"
+  ],
+  "database": {
+    "ownership": "shared_target_domain",
+    "logical_name": "support"
+  },
+  "uses_extension_points": [
+    "support.validators@1",
+    "support.commands@1",
+    "support.ui@1"
+  ],
+  "capabilities": {
+    "provides": [],
+    "requires": [
+      "domain.support.models@1"
+    ]
+  }
+}

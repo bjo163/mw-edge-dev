@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "id": "full",
+  "description": "MW Edge full profile",
+  "components": [
+    "mw.business",
+    "mw.crm",
+    "mw.reseller",
+    "mw.catalog",
+    "mw.commerce",
+    "mw.service",
+    "mw.billing",
+    "mw.entitlement",
+    "mw.provisioning",
+    "mw.support",
+    "mw.knowledge",
+    "mw.procurement",
+    "mw.inventory",
+    "mw.finance",
+    "mw.isp",
+    "mw.foundation",
+    "mw.standalone",
+    "mw.business.project",
+    "mw.crm.pipeline",
+    "mw.reseller.commission",
+    "mw.billing.payment",
+    "mw.support.escalation",
+    "mw.isp.network",
+    "mw.isp.radius",
+    "mw.isp.pppoe",
+    "mw.isp.accounting"
+  ]
+}

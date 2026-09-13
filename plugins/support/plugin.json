@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.support",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "support",
+  "entrypoint": "./plugins/support/index.js",
+  "models": [
+    "support.sla",
+    "support.ticket"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "support"
+  },
+  "extension_points": [
+    "support.validators@1",
+    "support.commands@1",
+    "support.projectors@1",
+    "support.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.support.models@1",
+      "domain.support.queries@1",
+      "domain.support.commands@1"
+    ],
+    "requires": []
+  }
+}

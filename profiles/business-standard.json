@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "id": "business-standard",
+  "description": "MW Edge business-standard profile",
+  "components": [
+    "mw.foundation",
+    "mw.business",
+    "mw.business.project",
+    "mw.crm",
+    "mw.crm.pipeline",
+    "mw.reseller",
+    "mw.reseller.commission",
+    "mw.catalog",
+    "mw.commerce",
+    "mw.service",
+    "mw.billing",
+    "mw.billing.payment",
+    "mw.entitlement",
+    "mw.provisioning",
+    "mw.support",
+    "mw.support.escalation",
+    "mw.knowledge"
+  ]
+}

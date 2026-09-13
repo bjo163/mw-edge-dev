@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.business.project",
+  "kind": "addon",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "business",
+  "entrypoint": "./addons/business-project/index.js",
+  "models": [
+    "business.project"
+  ],
+  "extends": "mw.business",
+  "requires": [
+    "mw.business"
+  ],
+  "database": {
+    "ownership": "shared_target_domain",
+    "logical_name": "business"
+  },
+  "uses_extension_points": [
+    "business.validators@1",
+    "business.commands@1",
+    "business.ui@1"
+  ],
+  "capabilities": {
+    "provides": [],
+    "requires": [
+      "domain.business.models@1"
+    ]
+  }
+}

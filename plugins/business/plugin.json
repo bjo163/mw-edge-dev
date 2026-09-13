@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.business",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "business",
+  "entrypoint": "./plugins/business/index.js",
+  "models": [
+    "business.organization"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "business"
+  },
+  "extension_points": [
+    "business.validators@1",
+    "business.commands@1",
+    "business.projectors@1",
+    "business.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.business.models@1",
+      "domain.business.queries@1",
+      "domain.business.commands@1"
+    ],
+    "requires": []
+  }
+}

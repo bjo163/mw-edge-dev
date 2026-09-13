@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.service",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "service",
+  "entrypoint": "./plugins/service/index.js",
+  "models": [
+    "service.subscription"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "service"
+  },
+  "extension_points": [
+    "service.validators@1",
+    "service.commands@1",
+    "service.projectors@1",
+    "service.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.service.models@1",
+      "domain.service.queries@1",
+      "domain.service.commands@1"
+    ],
+    "requires": []
+  }
+}

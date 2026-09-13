@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.reseller",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "reseller",
+  "entrypoint": "./plugins/reseller/index.js",
+  "models": [
+    "reseller.relationship"
+  ],
+  "requires": [
+    "mw.foundation"
+  ],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "reseller"
+  },
+  "extension_points": [
+    "reseller.validators@1",
+    "reseller.commands@1",
+    "reseller.projectors@1",
+    "reseller.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.reseller.models@1",
+      "domain.reseller.queries@1",
+      "domain.reseller.commands@1"
+    ],
+    "requires": []
+  }
+}

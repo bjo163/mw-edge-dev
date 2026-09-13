@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "id": "kernel-only",
+  "description": "MW Edge kernel-only profile",
+  "components": []
+}

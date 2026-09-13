@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.entitlement",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "entitlement",
+  "entrypoint": "./plugins/entitlement/index.js",
+  "models": [
+    "entitlement.allocation"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "entitlement"
+  },
+  "extension_points": [
+    "entitlement.validators@1",
+    "entitlement.commands@1",
+    "entitlement.projectors@1",
+    "entitlement.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.entitlement.models@1",
+      "domain.entitlement.queries@1",
+      "domain.entitlement.commands@1"
+    ],
+    "requires": []
+  }
+}

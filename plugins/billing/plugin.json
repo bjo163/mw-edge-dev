@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.billing",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "billing",
+  "entrypoint": "./plugins/billing/index.js",
+  "models": [
+    "billing.invoice"
+  ],
+  "requires": [
+    "mw.foundation"
+  ],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "billing"
+  },
+  "extension_points": [
+    "billing.validators@1",
+    "billing.commands@1",
+    "billing.projectors@1",
+    "billing.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.billing.models@1",
+      "domain.billing.queries@1",
+      "domain.billing.commands@1"
+    ],
+    "requires": []
+  }
+}

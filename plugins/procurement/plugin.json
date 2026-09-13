@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.procurement",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "procurement",
+  "entrypoint": "./plugins/procurement/index.js",
+  "models": [
+    "procurement.vendor",
+    "procurement.purchase_order",
+    "procurement.purchase_order_line"
+  ],
+  "requires": [
+    "mw.foundation"
+  ],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "procurement"
+  },
+  "extension_points": [
+    "procurement.validators@1",
+    "procurement.commands@1",
+    "procurement.projectors@1",
+    "procurement.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.procurement.models@1",
+      "domain.procurement.queries@1",
+      "domain.procurement.commands@1"
+    ],
+    "requires": []
+  }
+}

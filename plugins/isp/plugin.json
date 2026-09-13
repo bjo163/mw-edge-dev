@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.isp",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "isp",
+  "entrypoint": "./plugins/isp/index.js",
+  "models": [
+    "isp.subscriber"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "isp"
+  },
+  "extension_points": [
+    "isp.validators@1",
+    "isp.commands@1",
+    "isp.projectors@1",
+    "isp.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.isp.models@1",
+      "domain.isp.queries@1",
+      "domain.isp.commands@1"
+    ],
+    "requires": []
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.billing.payment",
+  "kind": "addon",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "billing",
+  "entrypoint": "./addons/billing-payment/index.js",
+  "models": [
+    "billing.payment"
+  ],
+  "extends": "mw.billing",
+  "requires": [
+    "mw.billing"
+  ],
+  "database": {
+    "ownership": "shared_target_domain",
+    "logical_name": "billing"
+  },
+  "uses_extension_points": [
+    "billing.validators@1",
+    "billing.commands@1",
+    "billing.ui@1"
+  ],
+  "capabilities": {
+    "provides": [],
+    "requires": [
+      "domain.billing.models@1"
+    ]
+  }
+}

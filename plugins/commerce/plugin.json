@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.commerce",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "commerce",
+  "entrypoint": "./plugins/commerce/index.js",
+  "models": [
+    "commerce.order"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "commerce"
+  },
+  "extension_points": [
+    "commerce.validators@1",
+    "commerce.commands@1",
+    "commerce.projectors@1",
+    "commerce.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.commerce.models@1",
+      "domain.commerce.queries@1",
+      "domain.commerce.commands@1"
+    ],
+    "requires": []
+  }
+}

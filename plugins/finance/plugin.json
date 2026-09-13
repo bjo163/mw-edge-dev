@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.finance",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "finance",
+  "entrypoint": "./plugins/finance/index.js",
+  "models": [
+    "finance.account",
+    "finance.journal_entry",
+    "finance.journal_line"
+  ],
+  "requires": [
+    "mw.foundation"
+  ],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "finance"
+  },
+  "extension_points": [
+    "finance.validators@1",
+    "finance.commands@1",
+    "finance.projectors@1",
+    "finance.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.finance.models@1",
+      "domain.finance.queries@1",
+      "domain.finance.commands@1"
+    ],
+    "requires": []
+  }
+}

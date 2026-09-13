@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.crm.pipeline",
+  "kind": "addon",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "crm",
+  "entrypoint": "./addons/crm-pipeline/index.js",
+  "models": [
+    "crm.lead",
+    "crm.opportunity"
+  ],
+  "extends": "mw.crm",
+  "requires": [
+    "mw.crm"
+  ],
+  "database": {
+    "ownership": "shared_target_domain",
+    "logical_name": "crm"
+  },
+  "uses_extension_points": [
+    "crm.validators@1",
+    "crm.commands@1",
+    "crm.ui@1"
+  ],
+  "capabilities": {
+    "provides": [],
+    "requires": [
+      "domain.crm.models@1"
+    ]
+  }
+}

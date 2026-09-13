@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.isp.accounting",
+  "kind": "addon",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "isp",
+  "entrypoint": "./addons/isp-accounting/index.js",
+  "models": [
+    "isp.usage_record"
+  ],
+  "extends": "mw.isp",
+  "requires": [
+    "mw.isp",
+    "mw.isp.network",
+    "mw.isp.pppoe"
+  ],
+  "database": {
+    "ownership": "shared_target_domain",
+    "logical_name": "isp"
+  },
+  "uses_extension_points": [
+    "isp.validators@1",
+    "isp.commands@1",
+    "isp.ui@1"
+  ],
+  "capabilities": {
+    "provides": [],
+    "requires": [
+      "domain.isp.models@1"
+    ]
+  }
+}

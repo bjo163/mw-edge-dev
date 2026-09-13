@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "id": "standalone-isp",
+  "description": "MW Edge standalone-isp profile",
+  "components": [
+    "mw.foundation",
+    "mw.business",
+    "mw.business.project",
+    "mw.crm",
+    "mw.crm.pipeline",
+    "mw.reseller",
+    "mw.reseller.commission",
+    "mw.catalog",
+    "mw.commerce",
+    "mw.service",
+    "mw.billing",
+    "mw.billing.payment",
+    "mw.entitlement",
+    "mw.provisioning",
+    "mw.support",
+    "mw.support.escalation",
+    "mw.knowledge",
+    "mw.isp",
+    "mw.isp.network",
+    "mw.isp.radius",
+    "mw.isp.pppoe",
+    "mw.isp.accounting",
+    "mw.standalone"
+  ]
+}

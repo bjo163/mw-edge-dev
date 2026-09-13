@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.knowledge",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "knowledge",
+  "entrypoint": "./plugins/knowledge/index.js",
+  "models": [
+    "knowledge.article"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "knowledge"
+  },
+  "extension_points": [
+    "knowledge.validators@1",
+    "knowledge.commands@1",
+    "knowledge.projectors@1",
+    "knowledge.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.knowledge.models@1",
+      "domain.knowledge.queries@1",
+      "domain.knowledge.commands@1"
+    ],
+    "requires": []
+  }
+}

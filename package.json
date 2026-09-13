@@ -1,0 +1,22 @@
+{
+  "name": "@mw/mw-edge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.17.0",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "test:unit": "node --test test/*.test.js",
+    "lint": "node scripts/lint.js",
+    "format:check": "node scripts/format-check.js",
+    "db:migrate": "node scripts/migrate.js",
+    "profiles": "node scripts/profiles.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.1",
+    "hono": "^4.9.8"
+  }
+}

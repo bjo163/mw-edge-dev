@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "id": "erp",
+  "description": "MW Edge erp profile",
+  "components": [
+    "mw.foundation",
+    "mw.business",
+    "mw.business.project",
+    "mw.crm",
+    "mw.crm.pipeline",
+    "mw.reseller",
+    "mw.reseller.commission",
+    "mw.catalog",
+    "mw.commerce",
+    "mw.service",
+    "mw.billing",
+    "mw.billing.payment",
+    "mw.entitlement",
+    "mw.provisioning",
+    "mw.support",
+    "mw.support.escalation",
+    "mw.knowledge",
+    "mw.procurement",
+    "mw.inventory",
+    "mw.finance"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.provisioning",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "provisioning",
+  "entrypoint": "./plugins/provisioning/index.js",
+  "models": [
+    "provisioning.reference"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "provisioning"
+  },
+  "extension_points": [
+    "provisioning.validators@1",
+    "provisioning.commands@1",
+    "provisioning.projectors@1",
+    "provisioning.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.provisioning.models@1",
+      "domain.provisioning.queries@1",
+      "domain.provisioning.commands@1"
+    ],
+    "requires": []
+  }
+}

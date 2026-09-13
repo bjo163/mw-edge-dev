@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.crm",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "crm",
+  "entrypoint": "./plugins/crm/index.js",
+  "models": [
+    "crm.contact"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "crm"
+  },
+  "extension_points": [
+    "crm.validators@1",
+    "crm.commands@1",
+    "crm.projectors@1",
+    "crm.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.crm.models@1",
+      "domain.crm.queries@1",
+      "domain.crm.commands@1"
+    ],
+    "requires": []
+  }
+}

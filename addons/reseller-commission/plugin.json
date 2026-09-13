@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.reseller.commission",
+  "kind": "addon",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "reseller",
+  "entrypoint": "./addons/reseller-commission/index.js",
+  "models": [
+    "reseller.commission"
+  ],
+  "extends": "mw.reseller",
+  "requires": [
+    "mw.reseller"
+  ],
+  "database": {
+    "ownership": "shared_target_domain",
+    "logical_name": "reseller"
+  },
+  "uses_extension_points": [
+    "reseller.validators@1",
+    "reseller.commands@1",
+    "reseller.ui@1"
+  ],
+  "capabilities": {
+    "provides": [],
+    "requires": [
+      "domain.reseller.models@1"
+    ]
+  }
+}

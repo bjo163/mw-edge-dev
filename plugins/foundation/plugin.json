@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.foundation",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "foundation",
+  "entrypoint": "./plugins/foundation/index.js",
+  "models": [
+    "foundation.country",
+    "foundation.currency",
+    "foundation.language",
+    "foundation.timezone",
+    "foundation.locale"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "foundation"
+  },
+  "extension_points": [
+    "foundation.validators@1",
+    "foundation.commands@1",
+    "foundation.projectors@1",
+    "foundation.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.foundation.models@1",
+      "domain.foundation.queries@1",
+      "domain.foundation.commands@1"
+    ],
+    "requires": []
+  }
+}

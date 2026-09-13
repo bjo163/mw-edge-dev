@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.standalone",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "standalone",
+  "entrypoint": "./plugins/standalone/index.js",
+  "models": [
+    "standalone.principal",
+    "standalone.session"
+  ],
+  "requires": [
+    "mw.foundation"
+  ],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "standalone"
+  },
+  "extension_points": [
+    "standalone.validators@1",
+    "standalone.commands@1",
+    "standalone.projectors@1",
+    "standalone.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.standalone.models@1",
+      "domain.standalone.queries@1",
+      "domain.standalone.commands@1"
+    ],
+    "requires": []
+  }
+}

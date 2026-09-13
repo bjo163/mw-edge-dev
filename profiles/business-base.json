@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "id": "business-base",
+  "description": "MW Edge business-base profile",
+  "components": [
+    "mw.foundation",
+    "mw.catalog",
+    "mw.commerce",
+    "mw.service",
+    "mw.entitlement",
+    "mw.provisioning"
+  ]
+}
