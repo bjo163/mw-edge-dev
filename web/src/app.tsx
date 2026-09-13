@@ -10,8 +10,10 @@ function readRoute(): Route {
   const segments = location.pathname.split("/").filter(Boolean);
   if (segments.length === 0) return { kind: "home" };
   if (segments.length === 2 && segments[0] === "resources") {
+    const resourceSegment = segments[1];
+    if (!resourceSegment) return { kind: "not-found" };
     try {
-      return { kind: "resource", resourceId: decodeURIComponent(segments[1]) };
+      return { kind: "resource", resourceId: decodeURIComponent(resourceSegment) };
     } catch {
       return { kind: "not-found" };
     }
