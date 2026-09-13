@@ -30,7 +30,8 @@
     "db:reset": "tsx scripts/db-reset.ts",
     "profiles": "tsx scripts/profiles.ts",
     "plugins:lock:write": "tsx scripts/plugins-lock.ts --write",
-    "plugins:lock:check": "tsx scripts/plugins-lock.ts --check"
+    "plugins:lock:check": "tsx scripts/plugins-lock.ts --check",
+    "docs:check": "tsx scripts/docs-check.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",
