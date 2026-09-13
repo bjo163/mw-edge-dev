@@ -1,0 +1,116 @@
+name: dependabot-automerge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [dev]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+concurrency:
+  group: dependabot-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  guarded-merge:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.base.ref == 'dev' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Read verified Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@ce64ab543818415476df7072e04370945165b773
+        with:
+          github-token: ${{ github.token }}
+
+      - name: Classify safe update lane
+        id: policy
+        env:
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          TARGET_BRANCH: ${{ steps.metadata.outputs.target-branch }}
+          MAINTAINER_CHANGES: ${{ steps.metadata.outputs.maintainer-changes }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TARGET_BRANCH" == "dev" ]] || {
+            echo "::error::Dependabot update does not target dev."
+            exit 1
+          }
+          [[ "$MAINTAINER_CHANGES" != "true" ]] || {
+            echo "::error::Maintainer-modified dependency PR requires explicit review."
+            exit 1
+          }
+          case "$UPDATE_TYPE" in
+            version-update:semver-patch|version-update:semver-minor)
+              echo "eligible=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "eligible=false" >> "$GITHUB_OUTPUT"
+              echo "Update type $UPDATE_TYPE requires explicit review."
+              ;;
+          esac
+
+      - name: Require all CI and security checks before merge
+        if: steps.policy.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(validate analyze review)
+          ready=false
+
+          for _attempt in $(seq 1 80); do
+            checks="$(gh api "repos/$REPO/commits/$EXPECTED_HEAD/check-runs?per_page=100")"
+            pending=false
+            for name in "${required[@]}"; do
+              rows="$(jq --arg name "$name" '[.check_runs[] | select(.name == $name)]' <<<"$checks")"
+              count="$(jq 'length' <<<"$rows")"
+              if [[ "$count" -eq 0 ]]; then
+                pending=true
+                continue
+              fi
+
+              failed="$(jq '[.[]
+                | select(.status == "completed")
+                | select(.conclusion != "success" and .conclusion != "neutral" and .conclusion != "skipped")
+              ] | length' <<<"$rows")"
+              if [[ "$failed" -gt 0 ]]; then
+                echo "::error::Mandatory check $name failed."
+                exit 1
+              fi
+
+              successful="$(jq '[.[] | select(.status == "completed" and .conclusion == "success")] | length' <<<"$rows")"
+              if [[ "$successful" -eq 0 ]]; then pending=true; fi
+            done
+
+            if [[ "$pending" == "false" ]]; then
+              ready=true
+              break
+            fi
+            sleep 10
+          done
+
+          [[ "$ready" == "true" ]] || {
+            echo "::error::Mandatory checks did not all succeed within the guarded merge window."
+            exit 1
+          }
+
+          pr="$(gh api "repos/$REPO/pulls/$PR_NUMBER")"
+          [[ "$(jq -r '.user.login' <<<"$pr")" == "dependabot[bot]" ]]
+          [[ "$(jq -r '.base.ref' <<<"$pr")" == "dev" ]]
+          [[ "$(jq -r '.head.sha' <<<"$pr")" == "$EXPECTED_HEAD" ]]
+          [[ "$(jq -r '.state' <<<"$pr")" == "open" ]]
+          [[ "$(jq -r '.draft' <<<"$pr")" == "false" ]]
+
+          # Normal merge only: never use --admin or any branch-protection bypass.
+          gh pr merge "$PR_NUMBER" --repo "$REPO" --squash
