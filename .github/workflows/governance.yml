@@ -19,6 +19,7 @@ jobs:
   govern:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Bootstrap labels milestones and issue metadata
         env:
           GH_TOKEN: ${{ github.token }}
