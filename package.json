@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.17.0",
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "node dist/src/server.js",
@@ -24,7 +26,9 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "factory:reset": "tsx scripts/factory-reset.ts",
     "db:reset": "tsx scripts/db-reset.ts",
-    "profiles": "tsx scripts/profiles.ts"
+    "profiles": "tsx scripts/profiles.ts",
+    "plugins:lock:write": "tsx scripts/plugins-lock.ts --write",
+    "plugins:lock:check": "tsx scripts/plugins-lock.ts --check"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",

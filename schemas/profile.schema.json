@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://moonwitness.local/schemas/mw-edge/profile.schema.json",
+  "title": "MW Edge Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","id","description","components"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "description": {"type": "string", "minLength": 1},
+    "components": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  }
+}

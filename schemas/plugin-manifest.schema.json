@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://moonwitness.local/schemas/mw-edge/plugin-manifest.schema.json",
+  "title": "MW Edge Plugin Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","id","kind","version","host_api","domain","entrypoint","models","requires","database","capabilities"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"type": "string", "pattern": "^mw\\.[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"},
+    "kind": {"enum": ["domain_plugin","addon"]},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "host_api": {"type": "string"},
+    "domain": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+    "entrypoint": {"type": "string"},
+    "models": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "requires": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "extends": {"type": "string"},
+    "extension_points": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "uses_extension_points": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ownership","logical_name"],
+      "properties": {
+        "ownership": {"enum": ["exclusive_domain_owner","shared_target_domain"]},
+        "logical_name": {"type": "string"}
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provides","requires"],
+      "properties": {
+        "provides": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "requires": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"const": "addon"}}},
+      "then": {"required": ["extends","uses_extension_points"]}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "domain_plugin"}}},
+      "then": {"required": ["extension_points"]}
+    }
+  ]
+}
