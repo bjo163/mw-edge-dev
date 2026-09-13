@@ -8,6 +8,7 @@ import { resolveComponents } from "../src/kernel/plugins/resolver.js";
 import { validateComponentContracts } from "../src/kernel/plugins/contracts.js";
 import { ExtensionRegistry } from "../src/kernel/plugins/extensions.js";
 import { LifecycleRegistry } from "../src/kernel/plugins/lifecycle.js";
+import { verifyPluginLock } from "../src/kernel/plugins/lock.js";
 import type { PluginManifest } from "../src/kernel/types.js";
 
 async function manifests(): Promise<Map<string, PluginManifest>> {
@@ -19,36 +20,25 @@ async function manifests(): Promise<Map<string, PluginManifest>> {
   }
   return result;
 }
-
-test("full graph satisfies extension points and capability contracts", async () => {
+test("committed plugin lock matches all built-in manifests", async () => {
+  const actual = await verifyPluginLock(process.cwd());
+  assert.equal(actual.components.length, 26);
+});
+test("full graph satisfies extension and capability contracts", async () => {
   const all = await manifests();
   const ordered = resolveComponents(all, [...all.keys()]);
   validateComponentContracts(all, ordered);
   const registry = new ExtensionRegistry();
-  for (const id of ordered) {
-    const manifest = all.get(id);
-    assert.ok(manifest);
-    registry.declare(manifest);
-  }
-  for (const id of ordered) {
-    const manifest = all.get(id);
-    assert.ok(manifest);
-    registry.bind(manifest);
-  }
+  for (const id of ordered) { const manifest = all.get(id); assert.ok(manifest); registry.declare(manifest); }
+  for (const id of ordered) { const manifest = all.get(id); assert.ok(manifest); registry.bind(manifest); }
   registry.freeze();
-  const snapshot = registry.snapshot();
-  assert.equal(snapshot.frozen, true);
-  assert.ok(snapshot.bindings.length > 0);
+  assert.equal(registry.snapshot().frozen, true);
+  assert.ok(registry.snapshot().bindings.length > 0);
 });
-
 test("lifecycle is monotonic and fail-closed", () => {
   const lifecycle = new LifecycleRegistry();
   lifecycle.discover("mw.example");
-  lifecycle.transition("mw.example", "validated");
-  lifecycle.transition("mw.example", "resolved");
-  lifecycle.transition("mw.example", "staged");
-  lifecycle.transition("mw.example", "migrated");
-  lifecycle.transition("mw.example", "active");
+  for (const state of ["validated","resolved","staged","migrated","active"] as const) lifecycle.transition("mw.example", state);
   assert.equal(lifecycle.get("mw.example"), "active");
   assert.throws(() => lifecycle.transition("mw.example", "staged"));
 });
