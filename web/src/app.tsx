@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
 
 type Route =
@@ -61,26 +61,33 @@ function Resource({ metadata }: { readonly metadata: ResourceMetadata }) {
 export function App() {
   const [principal, setPrincipal] = useState<Principal>();
   const [metadata, setMetadata] = useState<AppMetadata>();
+  const [metadataError, setMetadataError] = useState("");
   const [route, setRoute] = useState<Route>(() => readRoute());
   const [loading, setLoading] = useState(true);
-  const navigate = (path: string) => {
+  const navigate = useCallback((path: string) => {
     if (`${location.pathname}${location.search}${location.hash}` !== path) history.pushState(null, "", path);
     setRoute(readRoute());
-  };
+  }, []);
   const load = async () => {
     setLoading(true);
+    setMetadataError("");
     try {
       const session = await api.session();
       setPrincipal(session.principal);
       if (session.principal.must_rotate_password) {
         setMetadata(undefined);
       } else {
-        try { setMetadata(await api.metadata()); }
-        catch { setMetadata(undefined); }
+        try {
+          setMetadata(await api.metadata());
+        } catch {
+          setMetadata(undefined);
+          setMetadataError("Unable to load resource metadata. Please refresh and try again.");
+        }
       }
     } catch {
       setPrincipal(undefined);
       setMetadata(undefined);
+      setMetadataError("");
     } finally { setLoading(false); }
   };
   useEffect(() => { void load(); }, []);
@@ -94,6 +101,9 @@ export function App() {
   if (loading) return <main className="center">Loading…</main>;
   if (!principal) return <Login onLogin={load} />;
   if (principal.must_rotate_password) return <Rotate onDone={load} />;
+  if (metadataError) {
+    return <main className="center"><div className="panel"><h2>Metadata unavailable</h2><p>{metadataError}</p><button onClick={() => { void load(); }}>Retry</button></div></main>;
+  }
 
   const content = route.kind === "resource"
     ? resource
