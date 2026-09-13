@@ -17,6 +17,7 @@ run_gate() {
 [[ -n "$summary" ]] && printf '## MW Edge readiness\n\n' >> "$summary"
 run_gate "format" pnpm format:check
 run_gate "documentation" pnpm docs:check
+run_gate "capability inventory" pnpm capabilities
 run_gate "lint + typecheck" pnpm lint
 run_gate "plugin lock" pnpm plugins:lock:check
 run_gate "automation regression fixtures" pnpm test:automation
