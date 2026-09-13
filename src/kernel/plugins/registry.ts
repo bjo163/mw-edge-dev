@@ -161,7 +161,7 @@ export const COMPONENTS = {
     "kind": "addon",
     "domain": "isp",
     "path": "addons/isp-accounting"
-  }
+  },
   "mw.example": {
     "id": "mw.example",
     "kind": "domain_plugin",
