@@ -30,6 +30,12 @@ bash .github/scripts/migration-compatibility.sh | tee "$artifact_dir/migration-c
 echo "==> backup/restore disaster-recovery drill"
 pnpm exec tsx scripts/dr-drill.ts | tee "$artifact_dir/dr-drill.json"
 
+echo "==> production performance baseline"
+pnpm exec tsx scripts/perf-baseline.ts | tee "$artifact_dir/perf-baseline.json"
+
+echo "==> SQLite soak"
+pnpm exec tsx scripts/sqlite-soak.ts | tee "$artifact_dir/sqlite-soak.json"
+
 echo "==> clean-state migration"
 pnpm exec tsx scripts/migrate.ts --profile "$MW_PROFILE" --data-dir "$data_dir" | tee "$artifact_dir/migrate.json"
 
@@ -71,6 +77,8 @@ server_pid=""
   printf '## Nightly lifecycle\n\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS released-version migration compatibility\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS backup/restore disaster-recovery drill\n' >> "$GITHUB_STEP_SUMMARY"
+  printf -- '- PASS production performance baseline\n' >> "$GITHUB_STEP_SUMMARY"
+  printf -- '- PASS SQLite soak integrity/budget checks\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS clean-state migration\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS isolated factory reset\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS compiled server /health smoke\n' >> "$GITHUB_STEP_SUMMARY"
