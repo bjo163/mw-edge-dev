@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
+import { ApiError, api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
 import { message, resolveLocale, type Locale } from "./i18n/messages";
 import { Button, EmptyState, InlineError, LoadingState, StatusBadge } from "./ui/primitives";
 
@@ -7,6 +7,12 @@ type Route =
   | { readonly kind: "home" }
   | { readonly kind: "resource"; readonly resourceId: string }
   | { readonly kind: "not-found" };
+
+type ResourceFailure = {
+  readonly message: string;
+  readonly requestId: string | undefined;
+  readonly retryable: boolean;
+};
 
 function readRoute(): Route {
   const segments = location.pathname.split("/").filter(Boolean);
@@ -25,6 +31,14 @@ function readRoute(): Route {
 
 function resourcePath(resourceId: string) {
   return `/resources/${encodeURIComponent(resourceId)}`;
+}
+
+function toResourceFailure(failure: unknown, fallback: string): ResourceFailure {
+  return {
+    message: failure instanceof Error ? failure.message : fallback,
+    requestId: failure instanceof ApiError ? failure.requestId : undefined,
+    retryable: failure instanceof ApiError && failure.retryable,
+  };
 }
 
 function Login({ locale, onLogin }: { readonly locale: Locale; readonly onLogin: () => Promise<void> }) {
@@ -47,16 +61,17 @@ function Rotate({ locale, onDone }: { readonly locale: Locale; readonly onDone: 
 
 function Resource({ locale, metadata }: { readonly locale: Locale; readonly metadata: ResourceMetadata }) {
   const [data, setData] = useState<{ items: readonly Record<string, unknown>[]; total: number }>();
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ResourceFailure>();
   const [draft, setDraft] = useState<Record<string, unknown>>({});
   const refresh = async () => {
+    setError(undefined);
     try { setData(await api.list(metadata.resource_id)); }
-    catch (failure) { setError(failure instanceof Error ? failure.message : "Load failed"); }
+    catch (failure) { setError(toResourceFailure(failure, "Load failed")); }
   };
   useEffect(() => { void refresh(); }, [metadata.resource_id]);
 
-  return <section><header className="resource-head"><div><div className="eyebrow">{metadata.domain}</div><h2>{metadata.label}</h2></div><StatusBadge>{metadata.authority}</StatusBadge></header>{error && <InlineError>{error}</InlineError>}
-  {metadata.crud.create && <details className="panel"><summary>{message(locale, "resource.create")}</summary><form className="grid" onSubmit={async (event) => {event.preventDefault();try{await api.create(metadata.resource_id,draft);setDraft({});await refresh();}catch(failure){setError(failure instanceof Error?failure.message:"Create failed");}}}>{Object.entries(metadata.fields).map(([name, field]) => <label key={name}>{name}{field.type === "Boolean" ? <input type="checkbox" checked={Boolean(draft[name])} onChange={(event) => setDraft({...draft,[name]:event.target.checked})} /> : field.type === "Enum" ? <select value={String(draft[name] ?? "")} onChange={(event) => setDraft({...draft,[name]:event.target.value})} required={field.required}><option value="">Select…</option>{field.enum?.map((item) => <option key={item} value={item}>{item}</option>)}</select> : <input value={String(draft[name] ?? "")} onChange={(event) => setDraft({...draft,[name]:field.type === "Integer" || field.type === "Decimal" ? Number(event.target.value) : event.target.value})} required={field.required} />}</label>)}<Button type="submit">{message(locale, "resource.create")}</Button></form></details>}
+  return <section><header className="resource-head"><div><div className="eyebrow">{metadata.domain}</div><h2>{metadata.label}</h2></div><StatusBadge>{metadata.authority}</StatusBadge></header>{error && <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void refresh()}>{message(locale, "action.retry")}</Button>}{error.requestId && <details><summary>{message(locale, "state.technicalDetails")}</summary><p>{message(locale, "state.requestId")}: <code>{error.requestId}</code></p></details>}</InlineError>}
+  {metadata.crud.create && <details className="panel"><summary>{message(locale, "resource.create")}</summary><form className="grid" onSubmit={async (event) => {event.preventDefault();try{await api.create(metadata.resource_id,draft);setDraft({});await refresh();}catch(failure){setError({...toResourceFailure(failure,"Create failed"),retryable:false});}}}>{Object.entries(metadata.fields).map(([name, field]) => <label key={name}>{name}{field.type === "Boolean" ? <input type="checkbox" checked={Boolean(draft[name])} onChange={(event) => setDraft({...draft,[name]:event.target.checked})} /> : field.type === "Enum" ? <select value={String(draft[name] ?? "")} onChange={(event) => setDraft({...draft,[name]:event.target.value})} required={field.required}><option value="">Select…</option>{field.enum?.map((item) => <option key={item} value={item}>{item}</option>)}</select> : <input value={String(draft[name] ?? "")} onChange={(event) => setDraft({...draft,[name]:field.type === "Integer" || field.type === "Decimal" ? Number(event.target.value) : event.target.value})} required={field.required} />}</label>)}<Button type="submit">{message(locale, "resource.create")}</Button></form></details>}
   <div className="table-wrap"><table><thead><tr>{metadata.views.list.columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{data?.items.map((row, index) => <tr key={String(row.id ?? index)}>{metadata.views.list.columns.map((column) => <td key={column}>{typeof row[column] === "object" ? JSON.stringify(row[column]) : String(row[column] ?? "")}</td>)}</tr>)}</tbody></table></div></section>;
 }
 
