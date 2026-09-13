@@ -73,6 +73,8 @@ test("factory reset recreates the same normalized baseline as a fresh install", 
   fresh.orm.model("standalone.principal").create({
     principal_ref: "test.dirty-user",
     username: "dirty-user",
+    display_name: "Dirty User",
+    principal_type: "human",
     password_hash: "not-a-real-secret",
     login_enabled: false,
     is_superuser: false,
