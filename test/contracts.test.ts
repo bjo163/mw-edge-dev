@@ -23,6 +23,26 @@ test("public contract catalog is machine-auditable and points at evidence", () =
 
   assert.equal(catalog.schema_version, "1");
   assert.ok(catalog.contracts.length > 0);
+  const freeze = (catalog as typeof catalog & {
+    v1_freeze?: {
+      freeze_version: string;
+      stable_contracts: string[];
+      excluded_experimental: string[];
+      breaking_change_policy: string;
+    };
+  }).v1_freeze;
+  if (freeze) {
+    assert.equal(freeze.freeze_version, "1.0.0");
+    assert.equal(existsSync(resolve(process.cwd(), freeze.breaking_change_policy)), true);
+    for (const id of freeze.stable_contracts) {
+      const entry = catalog.contracts.find((contract) => contract.id === id);
+      assert.equal(entry?.stability, "stable", `${id} must remain stable after V1 freeze`);
+    }
+    for (const id of freeze.excluded_experimental) {
+      const entry = catalog.contracts.find((contract) => contract.id === id);
+      assert.equal(entry?.stability, "experimental", `${id} must stay explicitly experimental`);
+    }
+  }
   const ids = new Set<string>();
   for (const entry of catalog.contracts) {
     assert.ok(!ids.has(entry.id), `duplicate contract id ${entry.id}`);
