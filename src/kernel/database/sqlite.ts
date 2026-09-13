@@ -1,5 +1,5 @@
-import { DatabaseSync } from "node:sqlite";
-import { SQLITE_DATABASE_CAPABILITIES, type DatabaseAdapter, type DatabaseValue } from "./adapter.js";
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { SQLITE_DATABASE_CAPABILITIES } from "./adapter.js";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { DbRow } from "../types.js";
@@ -25,7 +25,7 @@ function nonNegativeInteger(value: number | undefined, fallback: number, name: s
   return resolved;
 }
 
-export class SqliteDatabase implements DatabaseAdapter {
+export class SqliteDatabase {
   readonly adapter_id = "sqlite";
   readonly experimental = false;
   readonly capabilities = SQLITE_DATABASE_CAPABILITIES;
@@ -57,15 +57,15 @@ export class SqliteDatabase implements DatabaseAdapter {
     this.db.exec(sql);
   }
 
-  run(sql: string, params: readonly DatabaseValue[] = []): { changes: number | bigint; lastInsertRowid: number | bigint } {
+  run(sql: string, params: readonly SQLInputValue[] = []): { changes: number | bigint; lastInsertRowid: number | bigint } {
     return this.db.prepare(sql).run(...params);
   }
 
-  all<T extends DbRow = DbRow>(sql: string, params: readonly DatabaseValue[] = []): T[] {
+  all<T extends DbRow = DbRow>(sql: string, params: readonly SQLInputValue[] = []): T[] {
     return this.db.prepare(sql).all(...params) as T[];
   }
 
-  get<T extends DbRow = DbRow>(sql: string, params: readonly DatabaseValue[] = []): T | undefined {
+  get<T extends DbRow = DbRow>(sql: string, params: readonly SQLInputValue[] = []): T | undefined {
     return this.db.prepare(sql).get(...params) as T | undefined;
   }
 
