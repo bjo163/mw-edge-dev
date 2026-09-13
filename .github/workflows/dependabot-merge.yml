@@ -1,0 +1,121 @@
+name: dependabot-automerge
+
+on:
+  workflow_run:
+    workflows: [dependabot-policy]
+    types: [completed]
+
+permissions:
+  actions: read
+  checks: read
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-automerge-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  guarded-merge:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.actor.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download verified policy evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: dependabot-policy
+          path: policy
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Verify policy, checks, and merge target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_HEAD: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          policy="policy/dependabot-policy.json"
+          [[ -f "$policy" ]] || {
+            echo "::error::Dependabot policy artifact is missing."
+            exit 1
+          }
+
+          schema="$(jq -r '.schema_version' "$policy")"
+          pr_number="$(jq -r '.pr_number' "$policy")"
+          expected_head="$(jq -r '.head' "$policy")"
+          update_type="$(jq -r '.update_type' "$policy")"
+          target_branch="$(jq -r '.target_branch' "$policy")"
+          maintainer_changes="$(jq -r '.maintainer_changes' "$policy")"
+
+          [[ "$schema" == "1" ]]
+          [[ "$pr_number" =~ ^[1-9][0-9]*$ ]]
+          [[ "$expected_head" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$expected_head" == "$WORKFLOW_HEAD" ]]
+          [[ "$target_branch" == "dev" ]]
+          [[ "$maintainer_changes" != "true" ]]
+
+          case "$update_type" in
+            version-update:semver-patch|version-update:semver-minor) ;;
+            *)
+              echo "Dependabot update type $update_type requires explicit review."
+              exit 0
+              ;;
+          esac
+
+          pr="$(gh api "repos/$REPO/pulls/$pr_number")"
+          [[ "$(jq -r '.user.login' <<<"$pr")" == "dependabot[bot]" ]]
+          [[ "$(jq -r '.base.ref' <<<"$pr")" == "dev" ]]
+          [[ "$(jq -r '.head.sha' <<<"$pr")" == "$expected_head" ]]
+          [[ "$(jq -r '.state' <<<"$pr")" == "open" ]]
+          [[ "$(jq -r '.draft' <<<"$pr")" == "false" ]]
+
+          required=(validate analyze review)
+          ready=false
+          for _attempt in $(seq 1 80); do
+            checks="$(gh api "repos/$REPO/commits/$expected_head/check-runs?per_page=100")"
+            pending=false
+            for name in "${required[@]}"; do
+              rows="$(jq --arg name "$name" '[.check_runs[] | select(.name == $name)]' <<<"$checks")"
+              count="$(jq 'length' <<<"$rows")"
+              if [[ "$count" -eq 0 ]]; then
+                pending=true
+                continue
+              fi
+
+              failed="$(jq '[.[]
+                | select(.status == "completed")
+                | select(.conclusion != "success" and .conclusion != "neutral" and .conclusion != "skipped")
+              ] | length' <<<"$rows")"
+              if [[ "$failed" -gt 0 ]]; then
+                echo "::error::Mandatory check $name failed."
+                exit 1
+              fi
+
+              successful="$(jq '[.[] | select(.status == "completed" and .conclusion == "success")] | length' <<<"$rows")"
+              if [[ "$successful" -eq 0 ]]; then pending=true; fi
+            done
+
+            if [[ "$pending" == "false" ]]; then
+              ready=true
+              break
+            fi
+            sleep 10
+          done
+
+          [[ "$ready" == "true" ]] || {
+            echo "::error::Mandatory checks did not all succeed within the guarded merge window."
+            exit 1
+          }
+
+          pr="$(gh api "repos/$REPO/pulls/$pr_number")"
+          [[ "$(jq -r '.head.sha' <<<"$pr")" == "$expected_head" ]]
+          [[ "$(jq -r '.mergeable_state' <<<"$pr")" != "dirty" ]]
+
+          # Normal merge only: never use --admin or any branch-protection bypass.
+          gh pr merge "$pr_number" --repo "$REPO" --squash
