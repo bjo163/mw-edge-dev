@@ -65,7 +65,7 @@ export function App() {
   const [route, setRoute] = useState<Route>(() => readRoute());
   const [loading, setLoading] = useState(true);
   const navigate = useCallback((path: string) => {
-    if (`${location.pathname}${location.search}` !== path) history.pushState(null, "", path);
+    if (location.pathname !== path) history.pushState(null, "", path);
     setRoute(readRoute());
   }, []);
   const load = async () => {
@@ -81,7 +81,7 @@ export function App() {
           setMetadata(await api.metadata());
         } catch {
           setMetadata(undefined);
-          setMetadataError("Unable to load resource metadata. Please refresh and try again.");
+          setMetadataError("Unable to load resource metadata. Please retry.");
         }
       }
     } catch {
