@@ -1,3 +1,10 @@
+export interface ComponentRegistryEntry {
+  readonly id: string;
+  readonly kind: "domain_plugin" | "addon";
+  readonly domain: string;
+  readonly path: string;
+}
+
 export const COMPONENTS = {
   "mw.business": {
     "id": "mw.business",
@@ -155,5 +162,10 @@ export const COMPONENTS = {
     "domain": "isp",
     "path": "addons/isp-accounting"
   }
-};
-export function componentEntry(id){ const c=COMPONENTS[id]; if(!c) throw new Error(`Unknown component ${id}`); return c; }
+} as const satisfies Readonly<Record<string, ComponentRegistryEntry>>;
+
+export function componentEntry(id: string): ComponentRegistryEntry {
+  const entry = (COMPONENTS as Readonly<Record<string, ComponentRegistryEntry>>)[id];
+  if (!entry) throw new Error(`Unknown component ${id}`);
+  return entry;
+}
