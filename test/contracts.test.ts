@@ -28,6 +28,21 @@ function assertUniquePaths(paths: string[], label: string): void {
   assert.equal(new Set(paths).size, paths.length, `${label} contains duplicate evidence paths`);
 }
 
+function assertEvidencePathClass(path: string, kind: "test" | "documentation", contractId: string): void {
+  if (kind === "test") {
+    assert.ok(
+      path.startsWith("test/") || path.startsWith(".github/scripts/"),
+      `${contractId} test evidence must point to test/ or .github/scripts/: ${path}`,
+    );
+    return;
+  }
+
+  assert.ok(
+    path.startsWith("docs/"),
+    `${contractId} documentation evidence must point to docs/: ${path}`,
+  );
+}
+
 test("public contract catalog is machine-auditable and points at evidence", () => {
   const catalog = JSON.parse(
     readFileSync(resolve(process.cwd(), "schemas/public-contracts.json"), "utf8"),
@@ -70,9 +85,11 @@ test("public contract catalog is machine-auditable and points at evidence", () =
     }
 
     for (const path of entry.tests) {
+      assertEvidencePathClass(path, "test", entry.id);
       assertRepositoryPath(path, `${entry.id} test evidence`);
     }
     for (const path of entry.docs) {
+      assertEvidencePathClass(path, "documentation", entry.id);
       assertRepositoryPath(path, `${entry.id} documentation`);
     }
   }
