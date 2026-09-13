@@ -71,7 +71,7 @@ test("factory reset recreates the same normalized baseline as a fresh install", 
   if (baselinePrincipalCount === undefined) throw new Error("Missing standalone.principal seed count");
 
   fresh.orm.model("standalone.principal").create({
-    ref: "test.dirty-user",
+    principal_ref: "test.dirty-user",
     username: "dirty-user",
     password_hash: "not-a-real-secret",
     login_enabled: false,
