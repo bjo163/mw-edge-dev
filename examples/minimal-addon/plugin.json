@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.example.note",
+  "kind": "addon",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "example",
+  "entrypoint": "./examples/minimal-addon/index.js",
+  "models": [
+    "example.note"
+  ],
+  "extends": "mw.example",
+  "requires": [
+    "mw.example"
+  ],
+  "database": {
+    "ownership": "shared_target_domain",
+    "logical_name": "example"
+  },
+  "uses_extension_points": [
+    "example.commands@1",
+    "example.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "addon.example.notes@1"
+    ],
+    "requires": [
+      "domain.example.models@1"
+    ]
+  }
+}
