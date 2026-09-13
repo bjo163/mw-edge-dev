@@ -46,8 +46,9 @@ async function anchorsFor(path: string): Promise<Set<string>> {
   const counts = new Map<string, number>();
   for (const line of text.split(/\r?\n/)) {
     const match = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
-    if (!match) continue;
-    const base = anchorSlug(match[2].replace(/\s+#+\s*$/, ""));
+    const heading = match?.[2];
+    if (!heading) continue;
+    const base = anchorSlug(heading.replace(/\s+#+\s*$/, ""));
     const count = counts.get(base) ?? 0;
     counts.set(base, count + 1);
     anchors.add(count === 0 ? base : base + "-" + count);
@@ -60,13 +61,16 @@ for (const file of markdownFiles) {
 
   const linkPattern = /!?\[[^\]]*\]\(([^)]+)\)/g;
   for (const match of text.matchAll(linkPattern)) {
-    let target = match[1].trim();
+    const capturedTarget = match[1];
+    if (!capturedTarget) continue;
+
+    let target = capturedTarget.trim();
     if (!target || /^(https?:|mailto:)/i.test(target)) continue;
     if (target.startsWith("<") && target.endsWith(">")) target = target.slice(1, -1);
-    target = target.split(/\s+["'][^"']*["']$/)[0];
+    target = target.split(/\s+["'][^"']*["']$/)[0] ?? target;
 
     const parts = target.split("#", 2);
-    const rawPath = parts[0];
+    const rawPath = parts[0] ?? "";
     const fragment = parts[1] ?? "";
     const decodedPath = decodeURIComponent(rawPath);
     const targetPath = decodedPath ? resolve(dirname(file), decodedPath) : file;
@@ -94,6 +98,7 @@ for (const file of markdownFiles) {
   const commandPattern = /\bpnpm(?:\s+run)?\s+([A-Za-z0-9:_-]+)/g;
   for (const match of text.matchAll(commandPattern)) {
     const command = match[1];
+    if (!command) continue;
     if (!builtins.has(command) && !scripts.has(command)) {
       errors.push(
         file.slice(root.length + 1) +
