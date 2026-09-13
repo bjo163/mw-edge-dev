@@ -1,0 +1,18 @@
+"area:ui":
+  - changed-files:
+      - any-glob-to-any-file: ["web/**"]
+"area:plugin":
+  - changed-files:
+      - any-glob-to-any-file: ["plugins/**", "addons/**", "profiles/**", "plugins.lock.json"]
+"area:db":
+  - changed-files:
+      - any-glob-to-any-file: ["src/kernel/database/**", "src/kernel/schema.ts"]
+"area:orm":
+  - changed-files:
+      - any-glob-to-any-file: ["src/kernel/orm.ts", "src/kernel/model-registry.ts"]
+"area:api":
+  - changed-files:
+      - any-glob-to-any-file: ["src/http/**", "src/server.ts"]
+"area:testing":
+  - changed-files:
+      - any-glob-to-any-file: ["test/**", ".github/workflows/**"]

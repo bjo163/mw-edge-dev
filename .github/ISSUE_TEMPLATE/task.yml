@@ -1,0 +1,24 @@
+name: Task
+description: Small executable TODO for MW Edge
+title: "[TASK] "
+labels: []
+body:
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: One small independently verifiable change.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Concrete commands or tests that prove completion.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Boundaries
+      description: What this issue must not change.

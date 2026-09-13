@@ -1,5 +1,15 @@
 # MW Edge Dev
 
+[![CI](https://github.com/bjo163/mw-edge-dev/actions/workflows/ci.yml/badge.svg)](https://github.com/bjo163/mw-edge-dev/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/bjo163/mw-edge-dev/actions/workflows/codeql.yml/badge.svg)](https://github.com/bjo163/mw-edge-dev/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/bjo163/mw-edge-dev/badge)](https://securityscorecards.dev/viewer/?uri=github.com/bjo163/mw-edge-dev)
+[![Release](https://img.shields.io/github/v/release/bjo163/mw-edge-dev?include_prereleases&sort=semver)](https://github.com/bjo163/mw-edge-dev/releases)
+[![Open Issues](https://img.shields.io/github/issues/bjo163/mw-edge-dev)](https://github.com/bjo163/mw-edge-dev/issues)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Node](https://img.shields.io/badge/Node-%E2%89%A522.13-339933?logo=nodedotjs&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-11.17-F69220?logo=pnpm&logoColor=white)
+
+
 Standalone TypeScript development repository for the MoonWitness business data engine.
 
 ## Core architecture

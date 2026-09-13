@@ -1,0 +1,30 @@
+name: sync-main-to-dev
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+concurrency:
+  group: sync-main-to-dev
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge main into dev
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(gh api -X POST "repos/$REPO/merges" -f base=dev -f head=main -f commit_message="chore(sync): main -> dev" --include 2>/tmp/merge.err | head -n1 || true)"
+          if echo "$status" | grep -Eq 'HTTP/.* (201|204)'; then
+            echo "main synced into dev"
+          elif grep -qE 'No commits between|already up-to-date' /tmp/merge.err; then
+            echo "dev already contains main"
+          else
+            cat /tmp/merge.err >&2
+            [ -n "$status" ] && echo "$status" >&2
+            exit 1
+          fi
