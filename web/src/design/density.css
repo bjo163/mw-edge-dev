@@ -1,0 +1,60 @@
+button,
+input,
+select,
+textarea {
+  min-height: var(--mw-control-height);
+}
+
+button,
+input,
+select,
+textarea,
+th,
+td,
+.panel,
+.resource-head {
+  transition: padding 120ms ease, min-height 120ms ease;
+}
+
+th,
+td {
+  min-height: var(--mw-row-height);
+}
+
+:root[data-density="compact"] .panel {
+  padding: var(--mw-space-3);
+}
+
+:root[data-density="compact"] th,
+:root[data-density="compact"] td {
+  padding-block: var(--mw-space-2);
+}
+
+:root[data-density="touch"] button,
+:root[data-density="touch"] input,
+:root[data-density="touch"] select,
+:root[data-density="touch"] textarea {
+  min-height: 44px;
+}
+
+@media (pointer: coarse) {
+  :root:not([data-density]) button,
+  :root:not([data-density]) input,
+  :root:not([data-density]) select,
+  :root:not([data-density]) textarea {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  input,
+  select,
+  textarea,
+  th,
+  td,
+  .panel,
+  .resource-head {
+    transition: none;
+  }
+}
