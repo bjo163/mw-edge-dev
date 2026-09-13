@@ -125,3 +125,4 @@ export interface AppMetadata {
 }
 
 export type DbPrimitive = string | number | bigint | null | Uint8Array;
+export type DbRow = Record<string, DbPrimitive>;
