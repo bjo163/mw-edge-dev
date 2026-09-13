@@ -65,7 +65,7 @@ export function App() {
   const [route, setRoute] = useState<Route>(() => readRoute());
   const [loading, setLoading] = useState(true);
   const navigate = useCallback((path: string) => {
-    if (`${location.pathname}${location.search}${location.hash}` !== path) history.pushState(null, "", path);
+    if (`${location.pathname}${location.search}` !== path) history.pushState(null, "", path);
     setRoute(readRoute());
   }, []);
   const load = async () => {
