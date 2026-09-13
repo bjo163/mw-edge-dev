@@ -15,15 +15,15 @@ The machine-auditable authority for this page is [public-contracts.json](../../s
 | Contract family | Stability | Owner | Canonical source |
 |---|---|---|---|
 | Health/bootstrap/auth/metadata/admin HTTP routes | beta | API/Security | [HTTP app](../../src/http/app.ts) |
-| Typed command registry + idempotency | beta | Kernel | [commands.ts](../../src/kernel/commands.ts) |
-| Typed query registry | beta | Kernel | [queries.ts](../../src/kernel/queries.ts) |
-| Plugin/addon manifest | beta | Plugin | [JSON Schema](../../schemas/plugin-manifest.schema.json) + runtime validator |
-| Profile document | beta | Plugin | [JSON Schema](../../schemas/profile.schema.json) + runtime validator |
-| Resource/field/view metadata | beta | UI/Kernel | [kernel types](../../src/kernel/types.ts) + metadata generator |
-| Extension-point registry | beta | Plugin | [extensions.ts](../../src/kernel/plugins/extensions.ts) |
+| Typed command registry + idempotency | stable | Kernel | [commands.ts](../../src/kernel/commands.ts) |
+| Typed query registry | stable | Kernel | [queries.ts](../../src/kernel/queries.ts) |
+| Plugin/addon manifest | stable | Plugin | [JSON Schema](../../schemas/plugin-manifest.schema.json) + runtime validator |
+| Profile document | stable | Plugin | [JSON Schema](../../schemas/profile.schema.json) + runtime validator |
+| Resource/field/view metadata | stable | UI/Kernel | [kernel types](../../src/kernel/types.ts) + metadata generator |
+| Extension-point registry | stable | Plugin | [extensions.ts](../../src/kernel/plugins/extensions.ts) |
 | Migration baseline/checksum semantics | beta | Migration | [schema.ts](../../src/kernel/schema.ts) |
-| Seed runner | beta | Plugin | [runner.ts](../../src/kernel/seeds/runner.ts) |
-| SQLite adapter capability surface | beta | DB | [adapter.ts](../../src/kernel/database/adapter.ts) |
+| Seed runner | stable | Plugin | [runner.ts](../../src/kernel/seeds/runner.ts) |
+| SQLite adapter capability surface | stable | DB | [adapter.ts](../../src/kernel/database/adapter.ts) |
 | Cloudflare D1 adapter | experimental | DB | [d1.ts](../../src/kernel/database/d1.ts) |
 | Documented operator commands/environment | beta | Ops | [package.json](../../package.json) and operator docs |
 
@@ -35,4 +35,4 @@ Plugin host implementation objects, lifecycle mutation internals, registry map s
 
 ## Gaps before V1 freeze
 
-All beta surfaces must be reviewed under the [compatibility policy](compatibility.md). D1 stays experimental and therefore is not part of the V1 compatibility promise unless separately promoted. New public surfaces must add catalog evidence in the same PR.
+The V1 extension/runtime freeze is recorded in [V1 contract freeze](v1-contract-freeze.md). Remaining beta surfaces must still be reviewed under the [compatibility policy](compatibility.md). D1 stays experimental and is explicitly outside the V1 compatibility promise. New public surfaces must add catalog evidence in the same PR.
