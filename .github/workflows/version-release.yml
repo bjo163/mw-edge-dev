@@ -8,10 +8,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: version-release
-  cancel-in-progress: false
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -23,67 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.19.0
-      - name: Compute semantic version
-        id: version
-        shell: bash
-        run: |
-          set -euo pipefail
-          current="$(node -p "require('./package.json').version")"
-          latest_tag="$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)"
-          if [ -n "$latest_tag" ]; then range="$latest_tag..HEAD"; else range="HEAD"; fi
-          subjects="$(git log "$range" --pretty='%s%n%b' 2>/dev/null || git log --pretty='%s%n%b')"
-          bump="patch"
-          if printf '%s
-' "$subjects" | grep -Eq 'BREAKING CHANGE|^[a-z]+(\([^)]*\))?!:'; then
-            bump="major"
-          elif printf '%s
-' "$subjects" | grep -Eq '^feat(\([^)]*\))?:'; then
-            bump="minor"
-          fi
-          next="$(node - "$current" "$bump" <<'NODE'
-          const [current,bump]=process.argv.slice(2);
-          let [major,minor,patch]=current.split('.').map(Number);
-          if (bump==='major') { major++; minor=0; patch=0; }
-          else if (bump==='minor') { minor++; patch=0; }
-          else patch++;
-          process.stdout.write([major,minor,patch].join('.'));
-          NODE
-          )"
-          echo "version=$next" >> "$GITHUB_OUTPUT"
-          echo "tag=v$next" >> "$GITHUB_OUTPUT"
-      - name: Update package version and changelog
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm version "$VERSION" --no-git-tag-version
-          previous="$(git tag --list 'v*' --sort=-v:refname | head -n1 || true)"
-          {
-            echo "# Changelog"
-            echo
-            echo "## v$VERSION - $(date -u +%Y-%m-%d)"
-            echo
-            if [ -n "$previous" ]; then
-              git log "$previous..HEAD" --pretty='- %s (%h)'
-            else
-              git log --pretty='- %s (%h)'
-            fi
-            echo
-            if [ -f CHANGELOG.md ]; then tail -n +2 CHANGELOG.md; fi
-          } > CHANGELOG.new
-          mv CHANGELOG.new CHANGELOG.md
-      - name: Commit tag and publish release
+      - name: Version bump and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.version.outputs.tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json CHANGELOG.md
-          git commit -m "chore(release): $TAG [skip ci]"
-          git tag -a "$TAG" -m "$TAG"
-          git push origin HEAD:main --follow-tags
-          gh release create "$TAG" --title "$TAG" --generate-notes
+        run: bash .github/scripts/version-release.sh
