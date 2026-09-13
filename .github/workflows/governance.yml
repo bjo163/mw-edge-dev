@@ -9,14 +9,23 @@ on:
       - opened
       - reopened
       - edited
+  schedule:
+    - cron: "11 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
   issues: write
+  pull-requests: read
+
+concurrency:
+  group: governance-${{ github.event_name }}
+  cancel-in-progress: false
 
 jobs:
   govern:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,3 +34,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: bash .github/scripts/governance.sh
+
+  steward:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run MW Edge Steward
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEALTH_TITLE: MW EDGE AUTOMATION HEALTH
+          FAIL_ON_FINDINGS: "false"
+        run: bash .github/scripts/mw-edge-steward.sh
