@@ -5,7 +5,7 @@ import { COMPONENTS } from "../src/kernel/plugins/registry.js";
 
 const productionComponents = Object.values(COMPONENTS).filter((entry) => !entry.id.startsWith("mw.example"));
 
-test("production component inventory is 17 domain plugins + 9 addons", () => {
+test("production component inventory is 18 domain plugins + 10 addons", () => {
   assert.equal(productionComponents.filter((entry) => entry.kind === "domain_plugin").length, 17);
   assert.equal(productionComponents.filter((entry) => entry.kind === "addon").length, 9);
 });
