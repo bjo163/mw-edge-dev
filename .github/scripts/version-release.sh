@@ -48,4 +48,6 @@ git add package.json CHANGELOG.md
 git commit -m "chore(release): $tag"
 git tag -a "$tag" -m "$tag"
 git push origin HEAD:main --follow-tags
+# GITHUB_TOKEN pushes do not trigger other workflows, so keep dev in sync here too.
+git push origin HEAD:dev
 gh release create "$tag" --title "$tag" --generate-notes
