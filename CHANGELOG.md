@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.1 - 2026-09-13
+
+- fix: harden governance and persistent dev branch sync (ae63d04)
+- fix: harden governance and two-branch synchronization (5d69f78)
+
+
 ## v0.2.0 - 2026-09-13
 
 - chore: add repository governance and automation (7c605bd)
