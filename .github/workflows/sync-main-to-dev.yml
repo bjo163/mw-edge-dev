@@ -2,37 +2,29 @@ name: sync-main-to-dev
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: sync-main-to-dev
+  group: mw-edge-repository-mutation
   cancel-in-progress: false
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: main
           fetch-depth: 0
           token: ${{ github.token }}
-      - name: Recreate or fast-forward dev from main
+      - name: Converge main into dev when safe
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          if git ls-remote --exit-code --heads origin dev >/dev/null 2>&1; then
-            git fetch origin dev
-            git switch -C dev origin/dev
-            git merge --ff-only origin/main
-          else
-            git switch -C dev origin/main
-          fi
-          git push origin HEAD:dev
+          output="$(bash .github/scripts/sync-main-to-dev.sh)"
+          echo "$output"
+          echo "$output" >> "$GITHUB_STEP_SUMMARY"
