@@ -21,14 +21,18 @@
     "test:unit": "tsx --test test/*.test.ts",
     "test:bootstrap": "tsx --test test/bootstrap.test.ts",
     "test:http": "tsx --test test/http.test.ts",
+    "test:automation": "bash .github/tests/release-policy.sh && bash .github/tests/branch-state.sh",
     "lint": "pnpm typecheck && tsx scripts/lint.ts",
     "format:check": "tsx scripts/format-check.ts",
+    "readiness": "bash .github/scripts/readiness.sh",
     "db:migrate": "tsx scripts/migrate.ts",
     "factory:reset": "tsx scripts/factory-reset.ts",
     "db:reset": "tsx scripts/db-reset.ts",
     "profiles": "tsx scripts/profiles.ts",
     "plugins:lock:write": "tsx scripts/plugins-lock.ts --write",
-    "plugins:lock:check": "tsx scripts/plugins-lock.ts --check"
+    "plugins:lock:check": "tsx scripts/plugins-lock.ts --check",
+    "docs:check": "tsx scripts/docs-check.ts",
+    "capabilities": "tsx scripts/capabilities.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",

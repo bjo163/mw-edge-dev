@@ -1,15 +1,22 @@
+import { resolve } from "node:path";
 import { boot } from "../src/index.js";
 
-const index = process.argv.indexOf("--profile");
-const profile = index >= 0 ? process.argv[index + 1] : process.env.MW_PROFILE ?? "standalone-business";
-if (!profile) throw new Error("Missing profile");
+const args = process.argv.slice(2);
+const value = (flag: string): string | undefined => {
+  const index = args.indexOf(flag);
+  return index >= 0 ? args[index + 1] : undefined;
+};
+const profile = value("--profile") ?? process.env.MW_PROFILE ?? "standalone-business";
+const dataDirInput = value("--data-dir") ?? process.env.MW_DATA_DIR;
+const dataDir = dataDirInput ? resolve(dataDirInput) : undefined;
 
-const env = await boot({ profile });
+const env = await boot({ profile, ...(dataDir ? { dataDir } : {}) });
 console.log(
   JSON.stringify(
     {
       status: "ok",
       profile,
+      data_dir: dataDir ?? "default",
       components: env.ordered.length,
       models: env.registry.list().length,
       domains: env.router.domains(),

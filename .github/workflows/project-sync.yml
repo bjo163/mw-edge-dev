@@ -2,15 +2,17 @@ name: project-sync
 
 on:
   issues:
-    types:
-      - opened
-      - reopened
+    types: [opened]
   pull_request:
-    types:
-      - opened
-      - reopened
-      - ready_for_review
+    types: [opened]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-sync-${{ github.event.issue.number || github.event.pull_request.number || 'backfill' }}
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -20,31 +22,47 @@ jobs:
       PROJECT_OWNER: bjo163
       PROJECT_TITLE: mw-edge-dev
       REPO: ${{ github.repository }}
+      EVENT_NAME: ${{ github.event_name }}
+      ITEM_URL: ${{ github.event.issue.html_url || github.event.pull_request.html_url || '' }}
     steps:
       - name: Explain missing token
-        if: "${{ env.PROJECT_TOKEN == '' }}"
+        if: ${{ env.PROJECT_TOKEN == '' }}
         run: echo "PROJECT_TOKEN secret is not configured; Project V2 sync is prepared but skipped."
       - name: Ensure project and sync item
-        if: "${{ env.PROJECT_TOKEN != '' }}"
+        if: ${{ env.PROJECT_TOKEN != '' }}
         env:
           GH_TOKEN: ${{ env.PROJECT_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          number="$(gh project list --owner "$PROJECT_OWNER" --format json --jq ".projects[] | select(.title == \"$PROJECT_TITLE\") | .number" | head -n1)"
-          if [ -z "$number" ]; then
+          changed=0
+          number="$(gh project list --owner "$PROJECT_OWNER" --format json | jq -r --arg title "$PROJECT_TITLE" '.projects[]? | select(.title == $title) | .number' | head -n1)"
+          if [[ -z "$number" ]]; then
             gh project create --owner "$PROJECT_OWNER" --title "$PROJECT_TITLE" >/dev/null
-            number="$(gh project list --owner "$PROJECT_OWNER" --format json --jq ".projects[] | select(.title == \"$PROJECT_TITLE\") | .number" | head -n1)"
+            number="$(gh project list --owner "$PROJECT_OWNER" --format json | jq -r --arg title "$PROJECT_TITLE" '.projects[]? | select(.title == $title) | .number' | head -n1)"
+            changed=$((changed + 1))
           fi
+
+          project_items="$(gh project item-list "$number" --owner "$PROJECT_OWNER" --limit 1000 --format json 2>/dev/null || printf '{"items":[]}')"
           add_item() {
-            gh project item-add "$number" --owner "$PROJECT_OWNER" --url "$1" >/dev/null 2>&1 || true
+            local url="$1"
+            [[ -n "$url" ]] || return 0
+            if jq -e --arg url "$url" '.items[]? | select(.content.url == $url)' <<<"$project_items" >/dev/null; then
+              echo "no-op: already in project: $url"
+              return 0
+            fi
+            gh project item-add "$number" --owner "$PROJECT_OWNER" --url "$url" >/dev/null
+            changed=$((changed + 1))
+            echo "changed: added $url"
           }
-          event_name="${{ github.event_name }}"
-          if [ "$event_name" = "issues" ]; then
-            add_item "${{ github.event.issue.html_url }}"
-          elif [ "$event_name" = "pull_request" ]; then
-            add_item "${{ github.event.pull_request.html_url }}"
+
+          if [[ "$EVENT_NAME" == "issues" || "$EVENT_NAME" == "pull_request" ]]; then
+            add_item "$ITEM_URL"
           else
-            while read -r url; do add_item "$url"; done < <(gh issue list --repo "$REPO" --state open --limit 200 --json url --jq '.[].url')
+            while read -r url; do add_item "$url"; done < <(gh issue list --repo "$REPO" --state open --limit 300 --json url --jq '.[].url')
             while read -r url; do add_item "$url"; done < <(gh pr list --repo "$REPO" --state open --limit 100 --json url --jq '.[].url')
           fi
+
+          if [[ "$changed" -eq 0 ]]; then outcome="no-op"; else outcome="changed"; fi
+          echo "project-sync outcome=$outcome changes=$changed"
+          [[ -z "${GITHUB_STEP_SUMMARY:-}" ]] || printf -- '- Project sync: **%s** (%s change(s))\n' "$outcome" "$changed" >> "$GITHUB_STEP_SUMMARY"

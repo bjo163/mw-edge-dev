@@ -14,8 +14,11 @@ async function walk(path: string): Promise<void> {
     }
     if (!/\.(ts|tsx|json)$/.test(name)) continue;
     const text = await readFile(child, "utf8");
-    if (text.includes("eval(") || text.includes("new Function(")) errors.push(`${child}: executable evaluation forbidden`);
-    if (!child.endsWith("scripts/lint.ts") && /:\s*any\b|<any\b|\bas any\b/.test(text)) {
+    const isLintSource = child.endsWith("scripts/lint.ts");
+    if (!isLintSource && (text.includes("eval(") || text.includes("new Function("))) {
+      errors.push(`${child}: executable evaluation forbidden`);
+    }
+    if (!isLintSource && /:\s*any\b|<any\b|\bas any\b/.test(text)) {
       errors.push(`${child}: unbounded TypeScript escape hatch forbidden`);
     }
   }

@@ -6,7 +6,8 @@ import { boot } from "./index.js";
 import { createApp } from "./http/app.js";
 
 const profile = process.env.MW_PROFILE ?? "standalone-business";
-const env = await boot({ profile });
+const dataDir = process.env.MW_DATA_DIR ? resolve(process.env.MW_DATA_DIR) : undefined;
+const env = await boot({ profile, ...(dataDir ? { dataDir } : {}) });
 const app = createApp(env);
 const dist = resolve(process.cwd(), "web/dist");
 
@@ -19,7 +20,7 @@ const port = Number(process.env.MW_EDGE_PORT ?? 8788);
 const hostname = process.env.MW_EDGE_HOST ?? "127.0.0.1";
 const server = serve({ fetch: app.fetch, port, hostname });
 
-console.log(JSON.stringify({ event: "mw-edge.started", profile, hostname, port, models: env.registry.list().length }));
+console.log(JSON.stringify({ event: "mw-edge.started", profile, dataDir: dataDir ?? "default", hostname, port, models: env.registry.list().length }));
 
 const shutdown = (): void => {
   server.close(() => {

@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+changes=0
+summary="${GITHUB_STEP_SUMMARY:-}"
+
+record_change() {
+  changes=$((changes + 1))
+  echo "changed: $1"
+}
+
 ensure_label() {
   local name="$1" color="$2" description="$3"
   local encoded
   encoded="$(jq -rn --arg v "$name" '$v|@uri')"
-  gh api "repos/$REPO/labels/$encoded" >/dev/null 2>&1 || gh api -X POST "repos/$REPO/labels" -f name="$name" -f color="$color" -f description="$description" >/dev/null
+  if ! gh api "repos/$REPO/labels/$encoded" >/dev/null 2>&1; then
+    gh api -X POST "repos/$REPO/labels" -f name="$name" -f color="$color" -f description="$description" >/dev/null
+    record_change "created label $name"
+  fi
 }
 
 while IFS='|' read -r name color description; do
@@ -40,7 +51,10 @@ ensure_milestone() {
   local title="$1" description="$2"
   local number
   number="$(gh api --paginate "repos/$REPO/milestones?state=all&per_page=100" --jq ".[] | select(.title == \"$title\") | .number" | head -n1)"
-  if [ -z "$number" ]; then gh api -X POST "repos/$REPO/milestones" -f title="$title" -f description="$description" >/dev/null; fi
+  if [ -z "$number" ]; then
+    gh api -X POST "repos/$REPO/milestones" -f title="$title" -f description="$description" >/dev/null
+    record_change "created milestone $title"
+  fi
 }
 ensure_milestone "V0.1 — Business Engine Ready" "Typed domain commands lifecycle deterministic migrations seeds reset and standalone release gate."
 ensure_milestone "V0.2 — Platform Hardening" "Authorization integration outbox API SDK observability backup restore and operational hardening."
@@ -51,12 +65,17 @@ if [ "${GITHUB_EVENT_NAME:-}" != "issues" ]; then exit 0; fi
 issue="$(jq -r '.issue.number // empty' "$GITHUB_EVENT_PATH")"
 body="$(jq -r '.issue.body // ""' "$GITHUB_EVENT_PATH")"
 [ -n "$issue" ] || exit 0
+issue_json="$(gh api "repos/$REPO/issues/$issue")"
 milestone="$(printf '%s\n' "$body" | sed -n 's/^Milestone:[[:space:]]*//p' | head -n1)"
 labels="$(printf '%s\n' "$body" | sed -n 's/^Labels:[[:space:]]*//p' | head -n1)"
 
 if [ -n "$milestone" ]; then
   number="$(gh api --paginate "repos/$REPO/milestones?state=all&per_page=100" --jq ".[] | select(.title == \"$milestone\") | .number" | head -n1)"
-  [ -z "$number" ] || gh api -X PATCH "repos/$REPO/issues/$issue" -F milestone="$number" >/dev/null
+  current_milestone="$(jq -r '.milestone.title // ""' <<<"$issue_json")"
+  if [ -n "$number" ] && [ "$current_milestone" != "$milestone" ]; then
+    gh api -X PATCH "repos/$REPO/issues/$issue" -F milestone="$number" >/dev/null
+    record_change "updated issue #$issue milestone"
+  fi
 fi
 
 if [ -n "$labels" ]; then
@@ -64,7 +83,16 @@ if [ -n "$labels" ]; then
   args=()
   for part in "${parts[@]}"; do
     label="$(echo "$part" | xargs)"
-    [ -z "$label" ] || args+=("-f" "labels[]=$label")
+    if [ -n "$label" ] && ! jq -e --arg label "$label" 'any(.labels[]?; .name == $label)' <<<"$issue_json" >/dev/null; then
+      args+=("-f" "labels[]=$label")
+    fi
   done
-  [ "${#args[@]}" -eq 0 ] || gh api -X POST "repos/$REPO/issues/$issue/labels" "${args[@]}" >/dev/null
+  if [ "${#args[@]}" -gt 0 ]; then
+    gh api -X POST "repos/$REPO/issues/$issue/labels" "${args[@]}" >/dev/null
+    record_change "added missing managed labels to issue #$issue"
+  fi
 fi
+
+if [ "$changes" -eq 0 ]; then outcome="no-op"; else outcome="changed"; fi
+echo "governance outcome=$outcome changes=$changes"
+[ -z "$summary" ] || printf -- '- Governance reconciliation: **%s** (%s change(s))\n' "$outcome" "$changes" >> "$summary"
