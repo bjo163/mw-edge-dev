@@ -80,7 +80,6 @@ export function App() {
         try {
           setMetadata(await api.metadata());
         } catch {
-          setMetadata(undefined);
           setMetadataError("Unable to load resource metadata. Please retry.");
         }
       }
