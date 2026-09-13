@@ -94,6 +94,26 @@
       "resolved_dependencies": []
     },
     {
+      "component_id": "mw.example",
+      "kind": "domain_plugin",
+      "version": "0.1.0",
+      "domain": "example",
+      "source": "examples/minimal-plugin",
+      "manifest_sha256": "893ec9edc111ca0ce5be89a57e0f3a7e6d137fb06fdba5a1f033933d5f847c73",
+      "resolved_dependencies": []
+    },
+    {
+      "component_id": "mw.example.note",
+      "kind": "addon",
+      "version": "0.1.0",
+      "domain": "example",
+      "source": "examples/minimal-addon",
+      "manifest_sha256": "5a9b94a100703b46a9b2825f6771156a1d4d01ec85e3ff99f789637e60a484ee",
+      "resolved_dependencies": [
+        "mw.example"
+      ]
+    },
+    {
       "component_id": "mw.finance",
       "kind": "domain_plugin",
       "version": "0.1.0",
