@@ -22,7 +22,7 @@ async function manifests(): Promise<Map<string, PluginManifest>> {
 }
 test("committed plugin lock matches all built-in manifests", async () => {
   const actual = await verifyPluginLock(process.cwd());
-  assert.equal(actual.components.length, 26);
+  assert.equal(actual.components.length, 28);
 });
 test("full graph satisfies extension and capability contracts", async () => {
   const all = await manifests();
