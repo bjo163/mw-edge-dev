@@ -24,6 +24,11 @@ export interface FieldDefinition {
   readonly ref_kind?: string;
 }
 
+export interface ModelIndexDefinition {
+  readonly id: string;
+  readonly fields: readonly string[];
+}
+
 export type ModelAuthority =
   | "CANONICAL"
   | "PROJECTION"
@@ -38,6 +43,7 @@ export interface ModelDefinition {
   readonly component: string;
   readonly authority: ModelAuthority;
   readonly fields: Readonly<Record<string, FieldDefinition>>;
+  readonly indexes?: readonly ModelIndexDefinition[];
 }
 
 export interface ComponentCapabilities {
