@@ -43,7 +43,7 @@ function firstString(...values: readonly unknown[]) {
 
 export class ApiError extends Error {
   readonly status: number;
-  readonly requestId?: string;
+  readonly requestId: string | undefined;
   readonly retryable: boolean;
 
   constructor(message: string, status: number, requestId: string | undefined, retryable: boolean) {
