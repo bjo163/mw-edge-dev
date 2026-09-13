@@ -1,9 +1,32 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { validateManifest } from "../src/kernel/plugins/manifest.js";
 import { validateProfile } from "../src/kernel/plugins/profile.js";
+
+const EXPECTED_STABILITY_VALUES = [
+  "stable",
+  "beta",
+  "experimental",
+  "internal",
+  "deprecated",
+] as const;
+
+function assertRepositoryPath(path: string, label: string): void {
+  assert.ok(path.length > 0, `${label} must not be empty`);
+  assert.equal(isAbsolute(path), false, `${label} must be repository-relative: ${path}`);
+  assert.equal(
+    path.split("/").includes(".."),
+    false,
+    `${label} must not escape the repository: ${path}`,
+  );
+  assert.equal(existsSync(resolve(process.cwd(), path)), true, `${label} does not exist: ${path}`);
+}
+
+function assertUniquePaths(paths: string[], label: string): void {
+  assert.equal(new Set(paths).size, paths.length, `${label} contains duplicate evidence paths`);
+}
 
 test("public contract catalog is machine-auditable and points at evidence", () => {
   const catalog = JSON.parse(
@@ -22,20 +45,35 @@ test("public contract catalog is machine-auditable and points at evidence", () =
   };
 
   assert.equal(catalog.schema_version, "1");
+  assert.deepEqual(catalog.stability_values, EXPECTED_STABILITY_VALUES);
+  assert.equal(new Set(catalog.stability_values).size, catalog.stability_values.length);
   assert.ok(catalog.contracts.length > 0);
+
   const ids = new Set<string>();
   for (const entry of catalog.contracts) {
+    assert.match(entry.id, /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/, `malformed contract id ${entry.id}`);
     assert.ok(!ids.has(entry.id), `duplicate contract id ${entry.id}`);
     ids.add(entry.id);
+
     assert.ok(catalog.stability_values.includes(entry.stability), entry.id);
-    assert.match(entry.owner, /^area:/);
-    assert.equal(existsSync(resolve(process.cwd(), entry.source)), true, entry.source);
+    assert.match(entry.owner, /^area:[a-z0-9]+(?:-[a-z0-9]+)*$/, `${entry.id} has malformed owner`);
+    assertRepositoryPath(entry.source, `${entry.id} source`);
+
+    assert.ok(Array.isArray(entry.tests), `${entry.id} tests must be an array`);
+    assert.ok(Array.isArray(entry.docs), `${entry.id} docs must be an array`);
+    assertUniquePaths(entry.tests, `${entry.id} tests`);
+    assertUniquePaths(entry.docs, `${entry.id} docs`);
+
     if (entry.stability === "stable" || entry.stability === "beta") {
       assert.ok(entry.tests.length > 0, `${entry.id} requires test evidence`);
       assert.ok(entry.docs.length > 0, `${entry.id} requires documentation`);
     }
-    for (const path of [...entry.tests, ...entry.docs]) {
-      assert.equal(existsSync(resolve(process.cwd(), path)), true, `${entry.id}: ${path}`);
+
+    for (const path of entry.tests) {
+      assertRepositoryPath(path, `${entry.id} test evidence`);
+    }
+    for (const path of entry.docs) {
+      assertRepositoryPath(path, `${entry.id} documentation`);
     }
   }
 });
