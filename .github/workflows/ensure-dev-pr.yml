@@ -1,0 +1,32 @@
+name: ensure-dev-pr
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ensure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure dev to main PR exists when repository setting permits it
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing="$(gh pr list --repo "$REPO" --state open --base main --head dev --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then echo "PR #$existing already exists"; exit 0; fi
+          if gh pr create --repo "$REPO" --base main --head dev --title "chore: sync dev into main" --body "Automated integration PR." 2>/tmp/pr.err; then exit 0; fi
+          if grep -q "GitHub Actions is not permitted to create or approve pull requests" /tmp/pr.err; then
+            echo "::notice::Enable Settings > Actions > General > Allow GitHub Actions to create and approve pull requests for fully automatic dev PR creation."
+            exit 0
+          fi
+          cat /tmp/pr.err >&2
+          exit 1

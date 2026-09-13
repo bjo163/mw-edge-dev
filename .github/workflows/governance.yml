@@ -1,0 +1,26 @@
+name: governance
+
+on:
+  push:
+    branches:
+      - main
+  issues:
+    types:
+      - opened
+      - reopened
+      - edited
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  govern:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bootstrap labels milestones and issue metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: bash .github/scripts/governance.sh

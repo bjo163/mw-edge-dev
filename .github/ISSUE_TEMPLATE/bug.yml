@@ -1,0 +1,22 @@
+name: Bug
+description: Reproducible defect
+title: "[BUG] "
+labels: []
+body:
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Logs, test output, commit SHA, or minimal reproduction.

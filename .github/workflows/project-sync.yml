@@ -1,0 +1,50 @@
+name: project-sync
+
+on:
+  issues:
+    types:
+      - opened
+      - reopened
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+      PROJECT_OWNER: bjo163
+      PROJECT_TITLE: mw-edge-dev
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Explain missing token
+        if: "${{ env.PROJECT_TOKEN == '' }}"
+        run: echo "PROJECT_TOKEN secret is not configured; Project V2 sync is prepared but skipped."
+      - name: Ensure project and sync item
+        if: "${{ env.PROJECT_TOKEN != '' }}"
+        env:
+          GH_TOKEN: ${{ env.PROJECT_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          number="$(gh project list --owner "$PROJECT_OWNER" --format json --jq ".projects[] | select(.title == \"$PROJECT_TITLE\") | .number" | head -n1)"
+          if [ -z "$number" ]; then
+            gh project create --owner "$PROJECT_OWNER" --title "$PROJECT_TITLE" >/dev/null
+            number="$(gh project list --owner "$PROJECT_OWNER" --format json --jq ".projects[] | select(.title == \"$PROJECT_TITLE\") | .number" | head -n1)"
+          fi
+          add_item() {
+            gh project item-add "$number" --owner "$PROJECT_OWNER" --url "$1" >/dev/null 2>&1 || true
+          }
+          event_name="${{ github.event_name }}"
+          if [ "$event_name" = "issues" ]; then
+            add_item "${{ github.event.issue.html_url }}"
+          elif [ "$event_name" = "pull_request" ]; then
+            add_item "${{ github.event.pull_request.html_url }}"
+          else
+            while read -r url; do add_item "$url"; done < <(gh issue list --repo "$REPO" --state open --limit 200 --json url --jq '.[].url')
+            while read -r url; do add_item "$url"; done < <(gh pr list --repo "$REPO" --state open --limit 100 --json url --jq '.[].url')
+          fi
