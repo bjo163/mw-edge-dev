@@ -24,6 +24,12 @@ export MW_EDGE_HOST="127.0.0.1"
 export MW_EDGE_PORT="$port"
 export NODE_ENV="production"
 
+echo "==> released-version migration compatibility"
+bash .github/scripts/migration-compatibility.sh | tee "$artifact_dir/migration-compatibility.log"
+
+echo "==> backup/restore disaster-recovery drill"
+pnpm exec tsx scripts/dr-drill.ts | tee "$artifact_dir/dr-drill.json"
+
 echo "==> clean-state migration"
 pnpm exec tsx scripts/migrate.ts --profile "$MW_PROFILE" --data-dir "$data_dir" | tee "$artifact_dir/migrate.json"
 
@@ -63,6 +69,8 @@ server_pid=""
 
 [[ -z "${GITHUB_STEP_SUMMARY:-}" ]] || {
   printf '## Nightly lifecycle\n\n' >> "$GITHUB_STEP_SUMMARY"
+  printf -- '- PASS released-version migration compatibility\n' >> "$GITHUB_STEP_SUMMARY"
+  printf -- '- PASS backup/restore disaster-recovery drill\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS clean-state migration\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS isolated factory reset\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS compiled server /health smoke\n' >> "$GITHUB_STEP_SUMMARY"
