@@ -23,14 +23,67 @@ export interface AppMetadata {
   readonly resources: readonly ResourceMetadata[];
 }
 
+interface ErrorEnvelope {
+  readonly error?: {
+    readonly message?: string;
+    readonly request_id?: string;
+    readonly requestId?: string;
+    readonly correlation_id?: string;
+    readonly correlationId?: string;
+  };
+  readonly request_id?: string;
+  readonly requestId?: string;
+  readonly correlation_id?: string;
+  readonly correlationId?: string;
+}
+
+function firstString(...values: readonly unknown[]) {
+  return values.find((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly requestId?: string;
+  readonly retryable: boolean;
+
+  constructor(message: string, status: number, requestId: string | undefined, retryable: boolean) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.requestId = requestId;
+    this.retryable = retryable;
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     credentials: "same-origin",
     headers: { "content-type": "application/json", ...options.headers },
     ...options,
   });
-  const data = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
-  if (!response.ok) throw new Error(data.error?.message ?? `HTTP ${response.status}`);
+  const data = (await response.json().catch(() => ({}))) as ErrorEnvelope;
+  if (!response.ok) {
+    const method = (options.method ?? "GET").toUpperCase();
+    const requestId = firstString(
+      data.error?.request_id,
+      data.error?.requestId,
+      data.error?.correlation_id,
+      data.error?.correlationId,
+      data.request_id,
+      data.requestId,
+      data.correlation_id,
+      data.correlationId,
+      response.headers.get("x-request-id"),
+      response.headers.get("x-correlation-id"),
+    );
+    const retryableStatus = response.status === 408 || response.status === 425 || response.status === 429 || response.status >= 500;
+    throw new ApiError(
+      data.error?.message ?? `HTTP ${response.status}`,
+      response.status,
+      requestId,
+      method === "GET" && retryableStatus,
+    );
+  }
   return data as T;
 }
 
