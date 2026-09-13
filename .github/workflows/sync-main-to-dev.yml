@@ -1,30 +1,38 @@
 name: sync-main-to-dev
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
 permissions:
   contents: write
+
 concurrency:
   group: sync-main-to-dev
   cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Merge main into dev
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ github.token }}
+      - name: Recreate or fast-forward dev from main
         shell: bash
         run: |
           set -euo pipefail
-          status="$(gh api -X POST "repos/$REPO/merges" -f base=dev -f head=main -f commit_message="chore(sync): main -> dev" --include 2>/tmp/merge.err | head -n1 || true)"
-          if echo "$status" | grep -Eq 'HTTP/.* (201|204)'; then
-            echo "main synced into dev"
-          elif grep -qE 'No commits between|already up-to-date' /tmp/merge.err; then
-            echo "dev already contains main"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          if git ls-remote --exit-code --heads origin dev >/dev/null 2>&1; then
+            git fetch origin dev
+            git switch -C dev origin/dev
+            git merge --ff-only origin/main
           else
-            cat /tmp/merge.err >&2
-            [ -n "$status" ] && echo "$status" >&2
-            exit 1
+            git switch -C dev origin/main
           fi
+          git push origin HEAD:dev
