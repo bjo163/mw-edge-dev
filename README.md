@@ -1,41 +1,57 @@
 # MW Edge Dev
 
-MoonWitness-native, plugin-first business data engine.
+Standalone TypeScript development repository for the MoonWitness business data engine.
 
-## Current foundation
+## Core architecture
 
-- custom thin MW ORM; no Drizzle/Prisma/TypeORM/Sequelize
-- one bounded domain = one logical SQLite database
-- 17 domain plugins, 9 addons, 43 models
-- addons extend exactly one domain and share its database
-- cross-domain links are opaque `Reference`; SQL `Relation` is same-domain only
-- deterministic profiles; discovered components are not automatically active
-- metadata is generated from the active model registry
-- kernel owns mechanisms and contains zero business models
+- strict TypeScript end-to-end; backend `.ts`, React UI `.tsx`
+- MW-native thin ORM; **no Drizzle / Prisma / TypeORM / Sequelize**
+- microkernel owns mechanisms and **zero business models**
+- **17 domain plugins = 17 logical SQLite databases**
+- 9 addons; each extends exactly one plugin and shares its target domain DB
+- 43 models including business, foundation reference data, and standalone support
+- cross-domain links use `Reference`; SQL `Relation` is same-domain only
+- metadata-driven UI rendered by React/Vite
+- standalone local super-admin and non-login `mw.bot`
+- pinned offline base data: CLDR 48.2.1 + IANA tzdb 2026c
+- deterministic factory reset scoped to MW Edge-owned data
 
-## Quick start
+## Clone and run
 
 ```bash
+git clone https://github.com/bjo163/mw-edge-dev.git
+cd mw-edge-dev
 corepack enable
 pnpm install
-pnpm test
-pnpm db:migrate -- --profile business-base
+
+# Optional. If omitted MW Edge generates a one-time random credential
+# in data/.bootstrap/admin-credentials.json.
+export MW_BOOTSTRAP_ADMIN_PASSWORD='replace-with-a-strong-password'
+
+pnpm dev:standalone
 ```
 
-The standalone Vite UI, foundation reference seeds, local super-admin/MW Bot bootstrap,
-factory reset and HTTP adapter are implemented in the next integration layer in this repository.
+Open `http://127.0.0.1:5173`.
 
-## Profiles
+The standalone username is `admin`. There is deliberately **no universal default password**.
 
-Run:
+## Validate
 
 ```bash
-pnpm profiles
+pnpm typecheck
+pnpm test
+pnpm ui:build
+pnpm build
 ```
 
-The default target profile is `standalone-business`.
+## Factory reset
 
-## Important boundaries
+```bash
+MW_ALLOW_FACTORY_RESET=1 pnpm factory:reset -- --profile standalone-business --yes
+```
 
-MW Edge does not replace MoonWitness task/Git/Radicle storage, identity, authorization,
-provenance, Cockpit, provider adapters, or webhook ingress.
+Reset rebuilds only databases owned by the selected MW Edge profile, then re-applies migrations and required/reference seeds. It does not touch MoonWitness Cockpit, task/Git/Radicle, identity/security, provenance, or provider state.
+
+## Integration boundary
+
+`standalone.principal` is a local adapter for standalone use. It is not canonical `mw-identity` state and should be disabled when MW Edge is integrated behind the accepted MoonWitness identity/security boundary.

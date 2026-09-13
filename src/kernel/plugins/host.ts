@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { COMPONENTS } from "./registry.js";
 import { validateManifest } from "./manifest.js";
 import { resolveComponents } from "./resolver.js";
@@ -13,9 +13,18 @@ import type { ModelDefinition, PluginManifest, ProfileDocument } from "../types.
 
 export const projectRoot = process.cwd();
 
+export interface SeedContext {
+  readonly orm: OrmEnvironment;
+  readonly router: DomainDatabaseRouter;
+  readonly registry: ModelRegistry;
+  readonly profile: string;
+  readonly projectRoot: string;
+  readonly memory: boolean;
+}
+
 interface RuntimeModule {
   readonly models?: readonly ModelDefinition[];
-  readonly seed?: (context: unknown) => void | Promise<void>;
+  readonly seed?: (context: SeedContext) => void | Promise<void>;
 }
 
 interface RuntimeComponent {
@@ -36,6 +45,21 @@ export async function loadProfile(profileId: string): Promise<ProfileDocument> {
     throw new Error(`Invalid profile ${profileId}`);
   }
   return profile as ProfileDocument;
+}
+
+export async function planProfile(profileId: string): Promise<{
+  readonly profileDocument: ProfileDocument;
+  readonly manifests: ReadonlyMap<string, PluginManifest>;
+  readonly ordered: readonly string[];
+}> {
+  const profileDocument = await loadProfile(profileId);
+  const manifests = new Map<string, PluginManifest>();
+  for (const component of Object.values(COMPONENTS)) {
+    const manifest = validateManifest(await readJson(resolve(projectRoot, component.path, "plugin.json")));
+    if (manifests.has(manifest.id)) throw new Error(`Duplicate component id ${manifest.id}`);
+    manifests.set(manifest.id, manifest);
+  }
+  return { profileDocument, manifests, ordered: resolveComponents(manifests, profileDocument.components) };
 }
 
 export interface BootOptions {
@@ -59,19 +83,11 @@ export async function boot(options: BootOptions = {}): Promise<BootEnvironment> 
   const profile = options.profile ?? process.env.MW_PROFILE ?? "standalone-business";
   const dataDir = options.dataDir ?? resolve(projectRoot, "data");
   const memory = options.memory ?? false;
-  const profileDocument = await loadProfile(profile);
-
-  const manifests = new Map<string, PluginManifest>();
-  for (const component of Object.values(COMPONENTS)) {
-    const manifest = validateManifest(await readJson(resolve(projectRoot, component.path, "plugin.json")));
-    if (manifests.has(manifest.id)) throw new Error(`Duplicate component id ${manifest.id}`);
-    manifests.set(manifest.id, manifest);
-  }
-
-  const ordered = resolveComponents(manifests, profileDocument.components);
+  const { manifests, ordered } = await planProfile(profile);
   const registry = new ModelRegistry();
   const runtimes = new Map<string, RuntimeComponent>();
-  const sourceExtension = extname(import.meta.url) === ".ts" ? ".ts" : ".js";
+  const currentFile = fileURLToPath(import.meta.url);
+  const sourceExtension = extname(currentFile) === ".ts" ? ".ts" : ".js";
   const runtimeRoot = sourceExtension === ".ts" ? projectRoot : resolve(projectRoot, "dist");
 
   for (const id of ordered) {
@@ -81,10 +97,7 @@ export async function boot(options: BootOptions = {}): Promise<BootEnvironment> 
     if (!manifest) throw new Error(`Missing manifest ${id}`);
     const module = (await import(pathToFileURL(resolve(runtimeRoot, component.path, `index${sourceExtension}`)).href)) as RuntimeModule;
     const componentModels = module.models ?? [];
-    if (
-      componentModels.map((model) => model.name).sort().join("|") !==
-      [...manifest.models].sort().join("|")
-    ) {
+    if (componentModels.map((model) => model.name).sort().join("|") !== [...manifest.models].sort().join("|")) {
       throw new Error(`Manifest/model drift in ${id}`);
     }
     for (const model of componentModels) registry.register(model, id);
@@ -97,16 +110,22 @@ export async function boot(options: BootOptions = {}): Promise<BootEnvironment> 
   for (const id of ordered) {
     const runtime = runtimes.get(id);
     if (!runtime) throw new Error(`Missing runtime ${id}`);
-    const registeredModels = runtime.models.map((model) => registry.get(model.name));
     materializeComponent({
       db: router.get(runtime.manifest.domain),
       manifest: runtime.manifest,
-      models: registeredModels,
+      models: runtime.models.map((model) => registry.get(model.name)),
       registry,
     });
   }
 
   const orm = new OrmEnvironment({ registry, router });
+  const seedContext: SeedContext = { orm, router, registry, profile, projectRoot, memory };
+  for (const id of ordered) {
+    const runtime = runtimes.get(id);
+    if (!runtime) throw new Error(`Missing runtime ${id}`);
+    if (runtime.module.seed) await runtime.module.seed(seedContext);
+  }
+
   const metadata = buildMetadata(
     registry,
     ordered.map((id) => {
@@ -116,14 +135,5 @@ export async function boot(options: BootOptions = {}): Promise<BootEnvironment> 
     }),
   );
 
-  return {
-    profile,
-    ordered,
-    manifests,
-    registry,
-    router,
-    orm,
-    metadata,
-    close: () => router.close(),
-  };
+  return { profile, ordered, manifests, registry, router, orm, metadata, close: () => router.close() };
 }

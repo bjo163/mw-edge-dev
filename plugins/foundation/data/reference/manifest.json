@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "sources": [
+    {
+      "name": "Unicode CLDR JSON",
+      "version": "48.2.1"
+    },
+    {
+      "name": "IANA tzdb canonical zones",
+      "version": "2026c"
+    }
+  ],
+  "counts": {
+    "countries": 264,
+    "currencies": 153,
+    "languages": 2,
+    "timezones": 312,
+    "locales": 2
+  },
+  "defaults": {
+    "locale": "id-ID",
+    "country": "ID",
+    "currency": "IDR",
+    "timezone": "Asia/Jakarta"
+  }
+}

@@ -1,0 +1,183 @@
+import { randomUUID } from "node:crypto";
+import { existsSync, unlinkSync } from "node:fs";
+import { resolve } from "node:path";
+import { Hono } from "hono";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { MwError } from "../kernel/errors.js";
+import type { BootEnvironment } from "../kernel/plugins/host.js";
+import type { OutputRecord } from "../kernel/orm.js";
+import { generateSessionToken, hashPassword, tokenHash, verifyPassword } from "../standalone/auth.js";
+
+type AppVariables = {
+  request_id: string;
+  auth: { session: OutputRecord; principal: OutputRecord };
+};
+
+function publicRecord(env: BootEnvironment, modelName: string, row: OutputRecord | undefined): OutputRecord | undefined {
+  if (!row) return row;
+  const output = { ...row };
+  for (const [name, field] of Object.entries(env.registry.get(modelName).fields)) {
+    if (field.sensitive) delete output[name];
+  }
+  return output;
+}
+
+export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables }> {
+  const app = new Hono<{ Variables: AppVariables }>();
+  const standalone = env.registry.has("standalone.principal") && env.registry.has("standalone.session");
+
+  const authenticate = (token: string | undefined): AppVariables["auth"] | undefined => {
+    if (!standalone || !token) return undefined;
+    const session = env.orm.model("standalone.session").findOne({ filters: { token_hash: tokenHash(token) } });
+    if (!session || session.revoked_at || Date.parse(String(session.expires_at)) <= Date.now()) return undefined;
+    const principal = env.orm.model("standalone.principal").get(String(session.principal_ref));
+    if (!principal || !principal.active || !principal.login_enabled) return undefined;
+    return { session, principal };
+  };
+
+  app.use("*", async (context, next) => {
+    context.set("request_id", context.req.header("x-request-id") ?? randomUUID());
+    const method = context.req.method.toUpperCase();
+    const origin = context.req.header("origin");
+    if (origin && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+      const requestOrigin = new URL(context.req.url).origin;
+      if (origin !== requestOrigin) throw new MwError("ACCESS_DENIED", "Cross-origin state change denied", 403);
+    }
+    await next();
+    context.header("x-request-id", context.get("request_id"));
+  });
+
+  app.onError((error, context) => {
+    const failure =
+      error instanceof MwError
+        ? error
+        : new MwError("INTERNAL_ERROR", process.env.NODE_ENV === "production" ? "Internal error" : error.message, 500);
+    return context.json(
+      { error: { code: failure.code, message: failure.message, request_id: context.get("request_id") } },
+      failure.status as 400 | 403 | 404 | 409 | 413 | 500,
+    );
+  });
+
+  app.get("/health", (context) =>
+    context.json({ status: "ok", profile: env.profile, models: env.registry.list().length, components: env.ordered.length }),
+  );
+
+  app.get("/api/bootstrap/status", (context) =>
+    context.json({
+      standalone,
+      admin_initialized: standalone ? Boolean(env.orm.model("standalone.principal").get("mw.super-admin")) : false,
+    }),
+  );
+
+  app.post("/api/auth/login", async (context) => {
+    if (!standalone) throw new MwError("NOT_FOUND", "Standalone login is not enabled", 404);
+    if (Number(context.req.header("content-length") ?? 0) > 65536) {
+      throw new MwError("PAYLOAD_TOO_LARGE", "Request body too large", 413);
+    }
+    const body = (await context.req.json()) as { username?: unknown; password?: unknown };
+    const principal = env.orm.model("standalone.principal").findOne({
+      filters: { username: String(body.username ?? "") },
+    });
+    if (
+      !principal ||
+      !principal.login_enabled ||
+      !verifyPassword(String(body.password ?? ""), principal.password_hash)
+    ) {
+      throw new MwError("ACCESS_DENIED", "Invalid credentials", 403);
+    }
+
+    const token = generateSessionToken();
+    const created = new Date();
+    const expires = new Date(created.getTime() + 12 * 60 * 60 * 1000);
+    env.orm.model("standalone.session").create({
+      session_ref: randomUUID(),
+      principal_ref: String(principal.principal_ref),
+      token_hash: tokenHash(token),
+      created_at: created.toISOString(),
+      expires_at: expires.toISOString(),
+    });
+    setCookie(context, "mw_session", token, {
+      httpOnly: true,
+      sameSite: "Strict",
+      secure: process.env.MW_COOKIE_SECURE === "1",
+      path: "/",
+      maxAge: 12 * 60 * 60,
+    });
+    return context.json({ principal: publicRecord(env, "standalone.principal", principal) });
+  });
+
+  const requireAdmin = async (
+    context: Parameters<Parameters<typeof app.use>[1]>[0],
+    next: () => Promise<void>,
+  ): Promise<void> => {
+    const state = authenticate(getCookie(context, "mw_session"));
+    if (!state || !state.principal.is_superuser) throw new MwError("ACCESS_DENIED", "Standalone superuser required", 403);
+    context.set("auth", state);
+    await next();
+  };
+
+  app.post("/api/auth/logout", requireAdmin, (context) => {
+    const { session } = context.get("auth");
+    env.orm.model("standalone.session").update(String(session.session_ref), { revoked_at: new Date().toISOString() });
+    deleteCookie(context, "mw_session", { path: "/" });
+    return context.json({ ok: true });
+  });
+
+  app.get("/api/auth/session", requireAdmin, (context) => {
+    const { principal } = context.get("auth");
+    return context.json({ principal: publicRecord(env, "standalone.principal", principal) });
+  });
+
+  app.post("/api/auth/change-password", requireAdmin, async (context) => {
+    const { principal } = context.get("auth");
+    const body = (await context.req.json()) as { password?: unknown };
+    env.orm.model("standalone.principal").update(String(principal.principal_ref), {
+      password_hash: hashPassword(String(body.password ?? "")),
+      must_rotate_password: false,
+    });
+    const credentialFile = resolve(process.cwd(), "data/.bootstrap/admin-credentials.json");
+    if (existsSync(credentialFile)) {
+      try {
+        unlinkSync(credentialFile);
+      } catch {
+        // Password change remains authoritative even if best-effort cleanup fails.
+      }
+    }
+    return context.json({ ok: true });
+  });
+
+  app.use("/api/meta/*", requireAdmin);
+  app.get("/api/meta/app", (context) => context.json(env.metadata));
+  app.get("/api/meta/resources", (context) => context.json(env.metadata.resources));
+
+  app.use("/api/admin/*", requireAdmin);
+  app.get("/api/admin/resources/:model", (context) => {
+    const modelName = context.req.param("model");
+    const metadata = env.metadata.resources.find((resource) => resource.resource_id === modelName);
+    if (!metadata?.crud.list) throw new MwError("ACCESS_DENIED", "Resource is not listable", 403);
+    const limit = Number(context.req.query("limit") ?? 50);
+    const offset = Number(context.req.query("offset") ?? 0);
+    const store = env.orm.model(modelName);
+    return context.json({
+      items: store.find({ limit, offset }).map((row) => publicRecord(env, modelName, row)),
+      total: store.count(),
+      limit: Math.min(Math.max(limit || 50, 1), 200),
+      offset: Math.max(offset || 0, 0),
+    });
+  });
+
+  app.post("/api/admin/resources/:model", async (context) => {
+    const modelName = context.req.param("model");
+    const metadata = env.metadata.resources.find((resource) => resource.resource_id === modelName);
+    if (!metadata?.crud.create) throw new MwError("ACCESS_DENIED", "Resource is not creatable", 403);
+    const body = (await context.req.json()) as Record<string, unknown>;
+    for (const [name, field] of Object.entries(env.registry.get(modelName).fields)) {
+      if (field.sensitive && Object.hasOwn(body, name)) {
+        throw new MwError("ACCESS_DENIED", "Sensitive fields require an explicit domain command", 403);
+      }
+    }
+    return context.json(publicRecord(env, modelName, env.orm.model(modelName).create(body)), 201);
+  });
+
+  return app;
+}

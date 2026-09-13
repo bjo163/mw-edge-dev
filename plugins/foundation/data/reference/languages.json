@@ -1,0 +1,16 @@
+[
+  {
+    "language_ref": "id",
+    "code": "id",
+    "name": "Indonesian",
+    "native_name": "Bahasa Indonesia",
+    "active": true
+  },
+  {
+    "language_ref": "en",
+    "code": "en",
+    "name": "English",
+    "native_name": "English",
+    "active": true
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "locale_ref": "id-ID",
+    "language_ref": "id",
+    "country_ref": "ID",
+    "currency_ref": "IDR",
+    "timezone_ref": "Asia/Jakarta",
+    "label": "Indonesia",
+    "active": true
+  },
+  {
+    "locale_ref": "en-US",
+    "language_ref": "en",
+    "country_ref": "US",
+    "currency_ref": "USD",
+    "timezone_ref": "America/New_York",
+    "label": "United States",
+    "active": true
+  }
+]

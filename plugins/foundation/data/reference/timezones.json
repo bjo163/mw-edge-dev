@@ -1,0 +1,1874 @@
+[
+  {
+    "timezone_ref": "Africa/Abidjan",
+    "name": "Africa/Abidjan",
+    "primary_country_ref": "CI",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Algiers",
+    "name": "Africa/Algiers",
+    "primary_country_ref": "DZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Bissau",
+    "name": "Africa/Bissau",
+    "primary_country_ref": "GW",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Cairo",
+    "name": "Africa/Cairo",
+    "primary_country_ref": "EG",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Casablanca",
+    "name": "Africa/Casablanca",
+    "primary_country_ref": "MA",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Ceuta",
+    "name": "Africa/Ceuta",
+    "primary_country_ref": "ES",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/El_Aaiun",
+    "name": "Africa/El_Aaiun",
+    "primary_country_ref": "EH",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Johannesburg",
+    "name": "Africa/Johannesburg",
+    "primary_country_ref": "ZA",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Juba",
+    "name": "Africa/Juba",
+    "primary_country_ref": "SS",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Khartoum",
+    "name": "Africa/Khartoum",
+    "primary_country_ref": "SD",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Lagos",
+    "name": "Africa/Lagos",
+    "primary_country_ref": "NG",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Maputo",
+    "name": "Africa/Maputo",
+    "primary_country_ref": "MZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Monrovia",
+    "name": "Africa/Monrovia",
+    "primary_country_ref": "LR",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Nairobi",
+    "name": "Africa/Nairobi",
+    "primary_country_ref": "KE",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Ndjamena",
+    "name": "Africa/Ndjamena",
+    "primary_country_ref": "TD",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Sao_Tome",
+    "name": "Africa/Sao_Tome",
+    "primary_country_ref": "ST",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Tripoli",
+    "name": "Africa/Tripoli",
+    "primary_country_ref": "LY",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Tunis",
+    "name": "Africa/Tunis",
+    "primary_country_ref": "TN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Africa/Windhoek",
+    "name": "Africa/Windhoek",
+    "primary_country_ref": "NA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Adak",
+    "name": "America/Adak",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Anchorage",
+    "name": "America/Anchorage",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Araguaina",
+    "name": "America/Araguaina",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Buenos_Aires",
+    "name": "America/Argentina/Buenos_Aires",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Catamarca",
+    "name": "America/Argentina/Catamarca",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Cordoba",
+    "name": "America/Argentina/Cordoba",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Jujuy",
+    "name": "America/Argentina/Jujuy",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/La_Rioja",
+    "name": "America/Argentina/La_Rioja",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Mendoza",
+    "name": "America/Argentina/Mendoza",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Rio_Gallegos",
+    "name": "America/Argentina/Rio_Gallegos",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Salta",
+    "name": "America/Argentina/Salta",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/San_Juan",
+    "name": "America/Argentina/San_Juan",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/San_Luis",
+    "name": "America/Argentina/San_Luis",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Tucuman",
+    "name": "America/Argentina/Tucuman",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Argentina/Ushuaia",
+    "name": "America/Argentina/Ushuaia",
+    "primary_country_ref": "AR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Asuncion",
+    "name": "America/Asuncion",
+    "primary_country_ref": "PY",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Bahia",
+    "name": "America/Bahia",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Bahia_Banderas",
+    "name": "America/Bahia_Banderas",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Barbados",
+    "name": "America/Barbados",
+    "primary_country_ref": "BB",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Belem",
+    "name": "America/Belem",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Belize",
+    "name": "America/Belize",
+    "primary_country_ref": "BZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Boa_Vista",
+    "name": "America/Boa_Vista",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Bogota",
+    "name": "America/Bogota",
+    "primary_country_ref": "CO",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Boise",
+    "name": "America/Boise",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Cambridge_Bay",
+    "name": "America/Cambridge_Bay",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Campo_Grande",
+    "name": "America/Campo_Grande",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Cancun",
+    "name": "America/Cancun",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Caracas",
+    "name": "America/Caracas",
+    "primary_country_ref": "VE",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Cayenne",
+    "name": "America/Cayenne",
+    "primary_country_ref": "GF",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Chicago",
+    "name": "America/Chicago",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Chihuahua",
+    "name": "America/Chihuahua",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Ciudad_Juarez",
+    "name": "America/Ciudad_Juarez",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Costa_Rica",
+    "name": "America/Costa_Rica",
+    "primary_country_ref": "CR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Coyhaique",
+    "name": "America/Coyhaique",
+    "primary_country_ref": "CL",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Cuiaba",
+    "name": "America/Cuiaba",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Danmarkshavn",
+    "name": "America/Danmarkshavn",
+    "primary_country_ref": "GL",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Dawson",
+    "name": "America/Dawson",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Dawson_Creek",
+    "name": "America/Dawson_Creek",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Denver",
+    "name": "America/Denver",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Detroit",
+    "name": "America/Detroit",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Edmonton",
+    "name": "America/Edmonton",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Eirunepe",
+    "name": "America/Eirunepe",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/El_Salvador",
+    "name": "America/El_Salvador",
+    "primary_country_ref": "SV",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Fort_Nelson",
+    "name": "America/Fort_Nelson",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Fortaleza",
+    "name": "America/Fortaleza",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Glace_Bay",
+    "name": "America/Glace_Bay",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Goose_Bay",
+    "name": "America/Goose_Bay",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Grand_Turk",
+    "name": "America/Grand_Turk",
+    "primary_country_ref": "TC",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Guatemala",
+    "name": "America/Guatemala",
+    "primary_country_ref": "GT",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Guayaquil",
+    "name": "America/Guayaquil",
+    "primary_country_ref": "EC",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Guyana",
+    "name": "America/Guyana",
+    "primary_country_ref": "GY",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Halifax",
+    "name": "America/Halifax",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Havana",
+    "name": "America/Havana",
+    "primary_country_ref": "CU",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Hermosillo",
+    "name": "America/Hermosillo",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Indianapolis",
+    "name": "America/Indiana/Indianapolis",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Knox",
+    "name": "America/Indiana/Knox",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Marengo",
+    "name": "America/Indiana/Marengo",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Petersburg",
+    "name": "America/Indiana/Petersburg",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Tell_City",
+    "name": "America/Indiana/Tell_City",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Vevay",
+    "name": "America/Indiana/Vevay",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Vincennes",
+    "name": "America/Indiana/Vincennes",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Indiana/Winamac",
+    "name": "America/Indiana/Winamac",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Inuvik",
+    "name": "America/Inuvik",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Iqaluit",
+    "name": "America/Iqaluit",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Jamaica",
+    "name": "America/Jamaica",
+    "primary_country_ref": "JM",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Juneau",
+    "name": "America/Juneau",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Kentucky/Louisville",
+    "name": "America/Kentucky/Louisville",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Kentucky/Monticello",
+    "name": "America/Kentucky/Monticello",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/La_Paz",
+    "name": "America/La_Paz",
+    "primary_country_ref": "BO",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Lima",
+    "name": "America/Lima",
+    "primary_country_ref": "PE",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Los_Angeles",
+    "name": "America/Los_Angeles",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Maceio",
+    "name": "America/Maceio",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Managua",
+    "name": "America/Managua",
+    "primary_country_ref": "NI",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Manaus",
+    "name": "America/Manaus",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Martinique",
+    "name": "America/Martinique",
+    "primary_country_ref": "MQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Matamoros",
+    "name": "America/Matamoros",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Mazatlan",
+    "name": "America/Mazatlan",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Menominee",
+    "name": "America/Menominee",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Merida",
+    "name": "America/Merida",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Metlakatla",
+    "name": "America/Metlakatla",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Mexico_City",
+    "name": "America/Mexico_City",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Miquelon",
+    "name": "America/Miquelon",
+    "primary_country_ref": "PM",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Moncton",
+    "name": "America/Moncton",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Monterrey",
+    "name": "America/Monterrey",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Montevideo",
+    "name": "America/Montevideo",
+    "primary_country_ref": "UY",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/New_York",
+    "name": "America/New_York",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Nome",
+    "name": "America/Nome",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Noronha",
+    "name": "America/Noronha",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/North_Dakota/Beulah",
+    "name": "America/North_Dakota/Beulah",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/North_Dakota/Center",
+    "name": "America/North_Dakota/Center",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/North_Dakota/New_Salem",
+    "name": "America/North_Dakota/New_Salem",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Nuuk",
+    "name": "America/Nuuk",
+    "primary_country_ref": "GL",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Ojinaga",
+    "name": "America/Ojinaga",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Panama",
+    "name": "America/Panama",
+    "primary_country_ref": "PA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Paramaribo",
+    "name": "America/Paramaribo",
+    "primary_country_ref": "SR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Phoenix",
+    "name": "America/Phoenix",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Port-au-Prince",
+    "name": "America/Port-au-Prince",
+    "primary_country_ref": "HT",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Porto_Velho",
+    "name": "America/Porto_Velho",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Puerto_Rico",
+    "name": "America/Puerto_Rico",
+    "primary_country_ref": "PR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Punta_Arenas",
+    "name": "America/Punta_Arenas",
+    "primary_country_ref": "CL",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Rankin_Inlet",
+    "name": "America/Rankin_Inlet",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Recife",
+    "name": "America/Recife",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Regina",
+    "name": "America/Regina",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Resolute",
+    "name": "America/Resolute",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Rio_Branco",
+    "name": "America/Rio_Branco",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Santarem",
+    "name": "America/Santarem",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Santiago",
+    "name": "America/Santiago",
+    "primary_country_ref": "CL",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Santo_Domingo",
+    "name": "America/Santo_Domingo",
+    "primary_country_ref": "DO",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Sao_Paulo",
+    "name": "America/Sao_Paulo",
+    "primary_country_ref": "BR",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Scoresbysund",
+    "name": "America/Scoresbysund",
+    "primary_country_ref": "GL",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Sitka",
+    "name": "America/Sitka",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/St_Johns",
+    "name": "America/St_Johns",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Swift_Current",
+    "name": "America/Swift_Current",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Tegucigalpa",
+    "name": "America/Tegucigalpa",
+    "primary_country_ref": "HN",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Thule",
+    "name": "America/Thule",
+    "primary_country_ref": "GL",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Tijuana",
+    "name": "America/Tijuana",
+    "primary_country_ref": "MX",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Toronto",
+    "name": "America/Toronto",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Vancouver",
+    "name": "America/Vancouver",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Whitehorse",
+    "name": "America/Whitehorse",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Winnipeg",
+    "name": "America/Winnipeg",
+    "primary_country_ref": "CA",
+    "active": true
+  },
+  {
+    "timezone_ref": "America/Yakutat",
+    "name": "America/Yakutat",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Casey",
+    "name": "Antarctica/Casey",
+    "primary_country_ref": "AQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Davis",
+    "name": "Antarctica/Davis",
+    "primary_country_ref": "AQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Macquarie",
+    "name": "Antarctica/Macquarie",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Mawson",
+    "name": "Antarctica/Mawson",
+    "primary_country_ref": "AQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Palmer",
+    "name": "Antarctica/Palmer",
+    "primary_country_ref": "AQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Rothera",
+    "name": "Antarctica/Rothera",
+    "primary_country_ref": "AQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Troll",
+    "name": "Antarctica/Troll",
+    "primary_country_ref": "AQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Antarctica/Vostok",
+    "name": "Antarctica/Vostok",
+    "primary_country_ref": "AQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Almaty",
+    "name": "Asia/Almaty",
+    "primary_country_ref": "KZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Amman",
+    "name": "Asia/Amman",
+    "primary_country_ref": "JO",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Anadyr",
+    "name": "Asia/Anadyr",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Aqtau",
+    "name": "Asia/Aqtau",
+    "primary_country_ref": "KZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Aqtobe",
+    "name": "Asia/Aqtobe",
+    "primary_country_ref": "KZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Ashgabat",
+    "name": "Asia/Ashgabat",
+    "primary_country_ref": "TM",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Atyrau",
+    "name": "Asia/Atyrau",
+    "primary_country_ref": "KZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Baghdad",
+    "name": "Asia/Baghdad",
+    "primary_country_ref": "IQ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Baku",
+    "name": "Asia/Baku",
+    "primary_country_ref": "AZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Bangkok",
+    "name": "Asia/Bangkok",
+    "primary_country_ref": "TH",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Barnaul",
+    "name": "Asia/Barnaul",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Beirut",
+    "name": "Asia/Beirut",
+    "primary_country_ref": "LB",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Bishkek",
+    "name": "Asia/Bishkek",
+    "primary_country_ref": "KG",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Chita",
+    "name": "Asia/Chita",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Colombo",
+    "name": "Asia/Colombo",
+    "primary_country_ref": "LK",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Damascus",
+    "name": "Asia/Damascus",
+    "primary_country_ref": "SY",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Dhaka",
+    "name": "Asia/Dhaka",
+    "primary_country_ref": "BD",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Dili",
+    "name": "Asia/Dili",
+    "primary_country_ref": "TL",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Dubai",
+    "name": "Asia/Dubai",
+    "primary_country_ref": "AE",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Dushanbe",
+    "name": "Asia/Dushanbe",
+    "primary_country_ref": "TJ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Famagusta",
+    "name": "Asia/Famagusta",
+    "primary_country_ref": "CY",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Gaza",
+    "name": "Asia/Gaza",
+    "primary_country_ref": "PS",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Hebron",
+    "name": "Asia/Hebron",
+    "primary_country_ref": "PS",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Ho_Chi_Minh",
+    "name": "Asia/Ho_Chi_Minh",
+    "primary_country_ref": "VN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Hong_Kong",
+    "name": "Asia/Hong_Kong",
+    "primary_country_ref": "HK",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Hovd",
+    "name": "Asia/Hovd",
+    "primary_country_ref": "MN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Irkutsk",
+    "name": "Asia/Irkutsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Jakarta",
+    "name": "Asia/Jakarta",
+    "primary_country_ref": "ID",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Jayapura",
+    "name": "Asia/Jayapura",
+    "primary_country_ref": "ID",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Jerusalem",
+    "name": "Asia/Jerusalem",
+    "primary_country_ref": "IL",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Kabul",
+    "name": "Asia/Kabul",
+    "primary_country_ref": "AF",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Kamchatka",
+    "name": "Asia/Kamchatka",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Karachi",
+    "name": "Asia/Karachi",
+    "primary_country_ref": "PK",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Kathmandu",
+    "name": "Asia/Kathmandu",
+    "primary_country_ref": "NP",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Khandyga",
+    "name": "Asia/Khandyga",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Kolkata",
+    "name": "Asia/Kolkata",
+    "primary_country_ref": "IN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Krasnoyarsk",
+    "name": "Asia/Krasnoyarsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Kuching",
+    "name": "Asia/Kuching",
+    "primary_country_ref": "MY",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Macau",
+    "name": "Asia/Macau",
+    "primary_country_ref": "MO",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Magadan",
+    "name": "Asia/Magadan",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Makassar",
+    "name": "Asia/Makassar",
+    "primary_country_ref": "ID",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Manila",
+    "name": "Asia/Manila",
+    "primary_country_ref": "PH",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Nicosia",
+    "name": "Asia/Nicosia",
+    "primary_country_ref": "CY",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Novokuznetsk",
+    "name": "Asia/Novokuznetsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Novosibirsk",
+    "name": "Asia/Novosibirsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Omsk",
+    "name": "Asia/Omsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Oral",
+    "name": "Asia/Oral",
+    "primary_country_ref": "KZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Pontianak",
+    "name": "Asia/Pontianak",
+    "primary_country_ref": "ID",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Pyongyang",
+    "name": "Asia/Pyongyang",
+    "primary_country_ref": "KP",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Qatar",
+    "name": "Asia/Qatar",
+    "primary_country_ref": "QA",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Qostanay",
+    "name": "Asia/Qostanay",
+    "primary_country_ref": "KZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Qyzylorda",
+    "name": "Asia/Qyzylorda",
+    "primary_country_ref": "KZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Riyadh",
+    "name": "Asia/Riyadh",
+    "primary_country_ref": "SA",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Sakhalin",
+    "name": "Asia/Sakhalin",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Samarkand",
+    "name": "Asia/Samarkand",
+    "primary_country_ref": "UZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Seoul",
+    "name": "Asia/Seoul",
+    "primary_country_ref": "KR",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Shanghai",
+    "name": "Asia/Shanghai",
+    "primary_country_ref": "CN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Singapore",
+    "name": "Asia/Singapore",
+    "primary_country_ref": "SG",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Srednekolymsk",
+    "name": "Asia/Srednekolymsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Taipei",
+    "name": "Asia/Taipei",
+    "primary_country_ref": "TW",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Tashkent",
+    "name": "Asia/Tashkent",
+    "primary_country_ref": "UZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Tbilisi",
+    "name": "Asia/Tbilisi",
+    "primary_country_ref": "GE",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Tehran",
+    "name": "Asia/Tehran",
+    "primary_country_ref": "IR",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Thimphu",
+    "name": "Asia/Thimphu",
+    "primary_country_ref": "BT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Tokyo",
+    "name": "Asia/Tokyo",
+    "primary_country_ref": "JP",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Tomsk",
+    "name": "Asia/Tomsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Ulaanbaatar",
+    "name": "Asia/Ulaanbaatar",
+    "primary_country_ref": "MN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Urumqi",
+    "name": "Asia/Urumqi",
+    "primary_country_ref": "CN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Ust-Nera",
+    "name": "Asia/Ust-Nera",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Vladivostok",
+    "name": "Asia/Vladivostok",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Yakutsk",
+    "name": "Asia/Yakutsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Yangon",
+    "name": "Asia/Yangon",
+    "primary_country_ref": "MM",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Yekaterinburg",
+    "name": "Asia/Yekaterinburg",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Asia/Yerevan",
+    "name": "Asia/Yerevan",
+    "primary_country_ref": "AM",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/Azores",
+    "name": "Atlantic/Azores",
+    "primary_country_ref": "PT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/Bermuda",
+    "name": "Atlantic/Bermuda",
+    "primary_country_ref": "BM",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/Canary",
+    "name": "Atlantic/Canary",
+    "primary_country_ref": "ES",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/Cape_Verde",
+    "name": "Atlantic/Cape_Verde",
+    "primary_country_ref": "CV",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/Faroe",
+    "name": "Atlantic/Faroe",
+    "primary_country_ref": "FO",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/Madeira",
+    "name": "Atlantic/Madeira",
+    "primary_country_ref": "PT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/South_Georgia",
+    "name": "Atlantic/South_Georgia",
+    "primary_country_ref": "GS",
+    "active": true
+  },
+  {
+    "timezone_ref": "Atlantic/Stanley",
+    "name": "Atlantic/Stanley",
+    "primary_country_ref": "FK",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Adelaide",
+    "name": "Australia/Adelaide",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Brisbane",
+    "name": "Australia/Brisbane",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Broken_Hill",
+    "name": "Australia/Broken_Hill",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Darwin",
+    "name": "Australia/Darwin",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Eucla",
+    "name": "Australia/Eucla",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Hobart",
+    "name": "Australia/Hobart",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Lindeman",
+    "name": "Australia/Lindeman",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Lord_Howe",
+    "name": "Australia/Lord_Howe",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Melbourne",
+    "name": "Australia/Melbourne",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Perth",
+    "name": "Australia/Perth",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Australia/Sydney",
+    "name": "Australia/Sydney",
+    "primary_country_ref": "AU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Andorra",
+    "name": "Europe/Andorra",
+    "primary_country_ref": "AD",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Astrakhan",
+    "name": "Europe/Astrakhan",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Athens",
+    "name": "Europe/Athens",
+    "primary_country_ref": "GR",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Belgrade",
+    "name": "Europe/Belgrade",
+    "primary_country_ref": "RS",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Berlin",
+    "name": "Europe/Berlin",
+    "primary_country_ref": "DE",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Brussels",
+    "name": "Europe/Brussels",
+    "primary_country_ref": "BE",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Bucharest",
+    "name": "Europe/Bucharest",
+    "primary_country_ref": "RO",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Budapest",
+    "name": "Europe/Budapest",
+    "primary_country_ref": "HU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Chisinau",
+    "name": "Europe/Chisinau",
+    "primary_country_ref": "MD",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Dublin",
+    "name": "Europe/Dublin",
+    "primary_country_ref": "IE",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Gibraltar",
+    "name": "Europe/Gibraltar",
+    "primary_country_ref": "GI",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Helsinki",
+    "name": "Europe/Helsinki",
+    "primary_country_ref": "FI",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Istanbul",
+    "name": "Europe/Istanbul",
+    "primary_country_ref": "TR",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Kaliningrad",
+    "name": "Europe/Kaliningrad",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Kirov",
+    "name": "Europe/Kirov",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Kyiv",
+    "name": "Europe/Kyiv",
+    "primary_country_ref": "UA",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Lisbon",
+    "name": "Europe/Lisbon",
+    "primary_country_ref": "PT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/London",
+    "name": "Europe/London",
+    "primary_country_ref": "GB",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Madrid",
+    "name": "Europe/Madrid",
+    "primary_country_ref": "ES",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Malta",
+    "name": "Europe/Malta",
+    "primary_country_ref": "MT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Minsk",
+    "name": "Europe/Minsk",
+    "primary_country_ref": "BY",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Moscow",
+    "name": "Europe/Moscow",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Paris",
+    "name": "Europe/Paris",
+    "primary_country_ref": "FR",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Prague",
+    "name": "Europe/Prague",
+    "primary_country_ref": "CZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Riga",
+    "name": "Europe/Riga",
+    "primary_country_ref": "LV",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Rome",
+    "name": "Europe/Rome",
+    "primary_country_ref": "IT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Samara",
+    "name": "Europe/Samara",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Saratov",
+    "name": "Europe/Saratov",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Simferopol",
+    "name": "Europe/Simferopol",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Sofia",
+    "name": "Europe/Sofia",
+    "primary_country_ref": "BG",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Tallinn",
+    "name": "Europe/Tallinn",
+    "primary_country_ref": "EE",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Tirane",
+    "name": "Europe/Tirane",
+    "primary_country_ref": "AL",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Ulyanovsk",
+    "name": "Europe/Ulyanovsk",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Vienna",
+    "name": "Europe/Vienna",
+    "primary_country_ref": "AT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Vilnius",
+    "name": "Europe/Vilnius",
+    "primary_country_ref": "LT",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Volgograd",
+    "name": "Europe/Volgograd",
+    "primary_country_ref": "RU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Warsaw",
+    "name": "Europe/Warsaw",
+    "primary_country_ref": "PL",
+    "active": true
+  },
+  {
+    "timezone_ref": "Europe/Zurich",
+    "name": "Europe/Zurich",
+    "primary_country_ref": "CH",
+    "active": true
+  },
+  {
+    "timezone_ref": "Indian/Chagos",
+    "name": "Indian/Chagos",
+    "primary_country_ref": "IO",
+    "active": true
+  },
+  {
+    "timezone_ref": "Indian/Maldives",
+    "name": "Indian/Maldives",
+    "primary_country_ref": "MV",
+    "active": true
+  },
+  {
+    "timezone_ref": "Indian/Mauritius",
+    "name": "Indian/Mauritius",
+    "primary_country_ref": "MU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Apia",
+    "name": "Pacific/Apia",
+    "primary_country_ref": "WS",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Auckland",
+    "name": "Pacific/Auckland",
+    "primary_country_ref": "NZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Bougainville",
+    "name": "Pacific/Bougainville",
+    "primary_country_ref": "PG",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Chatham",
+    "name": "Pacific/Chatham",
+    "primary_country_ref": "NZ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Easter",
+    "name": "Pacific/Easter",
+    "primary_country_ref": "CL",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Efate",
+    "name": "Pacific/Efate",
+    "primary_country_ref": "VU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Fakaofo",
+    "name": "Pacific/Fakaofo",
+    "primary_country_ref": "TK",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Fiji",
+    "name": "Pacific/Fiji",
+    "primary_country_ref": "FJ",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Galapagos",
+    "name": "Pacific/Galapagos",
+    "primary_country_ref": "EC",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Gambier",
+    "name": "Pacific/Gambier",
+    "primary_country_ref": "PF",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Guadalcanal",
+    "name": "Pacific/Guadalcanal",
+    "primary_country_ref": "SB",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Guam",
+    "name": "Pacific/Guam",
+    "primary_country_ref": "GU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Honolulu",
+    "name": "Pacific/Honolulu",
+    "primary_country_ref": "US",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Kanton",
+    "name": "Pacific/Kanton",
+    "primary_country_ref": "KI",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Kiritimati",
+    "name": "Pacific/Kiritimati",
+    "primary_country_ref": "KI",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Kosrae",
+    "name": "Pacific/Kosrae",
+    "primary_country_ref": "FM",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Kwajalein",
+    "name": "Pacific/Kwajalein",
+    "primary_country_ref": "MH",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Marquesas",
+    "name": "Pacific/Marquesas",
+    "primary_country_ref": "PF",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Nauru",
+    "name": "Pacific/Nauru",
+    "primary_country_ref": "NR",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Niue",
+    "name": "Pacific/Niue",
+    "primary_country_ref": "NU",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Norfolk",
+    "name": "Pacific/Norfolk",
+    "primary_country_ref": "NF",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Noumea",
+    "name": "Pacific/Noumea",
+    "primary_country_ref": "NC",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Pago_Pago",
+    "name": "Pacific/Pago_Pago",
+    "primary_country_ref": "AS",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Palau",
+    "name": "Pacific/Palau",
+    "primary_country_ref": "PW",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Pitcairn",
+    "name": "Pacific/Pitcairn",
+    "primary_country_ref": "PN",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Port_Moresby",
+    "name": "Pacific/Port_Moresby",
+    "primary_country_ref": "PG",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Rarotonga",
+    "name": "Pacific/Rarotonga",
+    "primary_country_ref": "CK",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Tahiti",
+    "name": "Pacific/Tahiti",
+    "primary_country_ref": "PF",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Tarawa",
+    "name": "Pacific/Tarawa",
+    "primary_country_ref": "KI",
+    "active": true
+  },
+  {
+    "timezone_ref": "Pacific/Tongatapu",
+    "name": "Pacific/Tongatapu",
+    "primary_country_ref": "TO",
+    "active": true
+  }
+]

@@ -10,20 +10,36 @@
     "start": "node dist/src/server.js",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev:standalone": "concurrently -k -n api,ui \"tsx watch src/server.ts\" \"vite --config web/vite.config.ts\"",
+    "start:standalone": "node dist/src/server.js",
+    "ui:dev": "vite --config web/vite.config.ts",
+    "ui:typecheck": "tsc -p web/tsconfig.json --noEmit",
+    "ui:build": "pnpm ui:typecheck && vite build --config web/vite.config.ts",
     "test": "tsx --test test/*.test.ts",
     "test:unit": "tsx --test test/*.test.ts",
+    "test:bootstrap": "tsx --test test/bootstrap.test.ts",
+    "test:http": "tsx --test test/http.test.ts",
     "lint": "pnpm typecheck && tsx scripts/lint.ts",
     "format:check": "tsx scripts/format-check.ts",
     "db:migrate": "tsx scripts/migrate.ts",
+    "factory:reset": "tsx scripts/factory-reset.ts",
+    "db:reset": "tsx scripts/db-reset.ts",
     "profiles": "tsx scripts/profiles.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",
-    "hono": "^4.9.8"
+    "hono": "^4.9.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.2.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0"
   }
 }
