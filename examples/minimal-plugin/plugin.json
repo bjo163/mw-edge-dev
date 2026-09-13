@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "id": "mw.example",
+  "kind": "domain_plugin",
+  "version": "0.1.0",
+  "host_api": "^1.0.0",
+  "domain": "example",
+  "entrypoint": "./examples/minimal-plugin/index.js",
+  "models": [
+    "example.item"
+  ],
+  "requires": [],
+  "database": {
+    "ownership": "exclusive_domain_owner",
+    "logical_name": "example"
+  },
+  "extension_points": [
+    "example.validators@1",
+    "example.commands@1",
+    "example.ui@1"
+  ],
+  "capabilities": {
+    "provides": [
+      "domain.example.models@1",
+      "domain.example.commands@1"
+    ],
+    "requires": []
+  }
+}
