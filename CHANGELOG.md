@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.7.0 - 2026-09-13
+
+- chore: sync dev into main (#419) (084aecf)
+- feat(steward): add scheduled workflow freshness analyzer (157ca24)
+- feat(schema): add declarative index metadata (fbd39f3)
+- fix(web): satisfy exact optional request evidence typing (bfc03cf)
+- fix(kernel): keep decoded rows outside database row contract (4513a8c)
+- feat(web): wire shared chrome to locale messages (6b8ba8d)
+- fix(kernel): restore database row contract (5b4903e)
+- feat(web): preserve request evidence on API failures (8176dc9)
+- feat(steward): add read-only plugin lock probe (657864b)
+- fix(kernel): validate model authority classes (a80e121)
+- feat(web): introduce accessible shared primitives (12baa0f)
+- test(contracts): harden public catalog drift checks (3f63785)
+
+
 ## v0.6.0 - 2026-09-13
 
 - Merge dev into main: platform hardening and UI foundations (636285f)
