@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.6.0 - 2026-09-13
+
+- Merge dev into main: platform hardening and UI foundations (636285f)
+- feat(nightly): gate and retain SQLite integrity evidence (979e111)
+- test(db): cover read-only SQLite integrity probe (7405cc0)
+- test(steward): gate scheduled failure fixtures (feafb4d)
+- feat(steward): analyze repeated scheduled failures (1ff3e7b)
+- fix(security): schedule privileged Dependabot merge guard (#132) (d15a8c1)
+- feat(security): add verified Dependabot merge handoff (e3ac271)
+- fix(security): split Dependabot policy from privileged merge (7622d0e)
+- fix(ui): guard resource route segment under strict indexing (#359) (f704af6)
+- fix(steward): repair Dependabot health loop (818d22e)
+- test(ui): lock design token and appearance foundations (#370 #371 #372 #373) (de9fedc)
+- feat(ui): apply appearance preferences before render (#371 #373) (09423bb)
+- feat(security): guard Dependabot updates through dev checks (#416) (a964f80)
+- feat(ui): add runtime theme and density preferences (#371 #373) (d994f93)
+- refactor(ui): apply tokens typography and density foundations (#370 #372 #373) (69b76e0)
+- test(architecture): include reference components in inventory (#415) (201e5be)
+- feat(ui): add shared locale formatting helpers (#398) (b458117)
+- feat(ui): add EN-ID message catalog foundation (#366) (21ae3de)
+- feat(ui): add semantic density modes (#373) (41179db)
+- test: separate example fixtures from production inventory (b5e1727)
+- feat(ui): add operator typography system (#372) (7916655)
+- feat(ui): add semantic design tokens (#370) (f88bd05)
+- fix(db): preserve SQLite native type boundary (#414) (09d7ae4)
+- feat(contracts): executable and auditable public contracts (#412) (3c9f323)
+- feat(docs): build versioned static documentation site (#411) (d012a36)
+- docs(security): complete production threat model (#410) (e066821)
+- test(perf): add production baseline and SQLite soak evidence (#409) (3c29141)
+- feat(ops): add migration compatibility and verified DR evidence (#408) (385a7c6)
+- feat(steward): add scheduled failure history analyzer (3e44ae7)
+- feat(db): add read-only profile integrity probe (95b6af7)
+- feat(web): derive resource selection from URL (45eb3e0)
+
+
 ## v0.5.0 - 2026-09-13
 
 - merge: promote validated dev changes to main (#369) (550a70a)
