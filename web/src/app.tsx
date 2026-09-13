@@ -1,6 +1,28 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
 
+type Route =
+  | { readonly kind: "home" }
+  | { readonly kind: "resource"; readonly resourceId: string }
+  | { readonly kind: "not-found" };
+
+function readRoute(): Route {
+  const segments = location.pathname.split("/").filter(Boolean);
+  if (segments.length === 0) return { kind: "home" };
+  if (segments.length === 2 && segments[0] === "resources") {
+    try {
+      return { kind: "resource", resourceId: decodeURIComponent(segments[1]) };
+    } catch {
+      return { kind: "not-found" };
+    }
+  }
+  return { kind: "not-found" };
+}
+
+function resourcePath(resourceId: string) {
+  return `/resources/${encodeURIComponent(resourceId)}`;
+}
+
 function Login({ onLogin }: { readonly onLogin: () => Promise<void> }) {
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
@@ -37,27 +59,42 @@ function Resource({ metadata }: { readonly metadata: ResourceMetadata }) {
 export function App() {
   const [principal, setPrincipal] = useState<Principal>();
   const [metadata, setMetadata] = useState<AppMetadata>();
-  const [selected, setSelected] = useState<string>();
+  const [route, setRoute] = useState<Route>(() => readRoute());
   const [loading, setLoading] = useState(true);
+  const navigate = (path: string) => {
+    if (`${location.pathname}${location.search}` !== path) history.pushState(null, "", path);
+    setRoute(readRoute());
+  };
   const load = async () => {
     setLoading(true);
     try {
       const session = await api.session();
       setPrincipal(session.principal);
-      if (!session.principal.must_rotate_password) {
-        const next = await api.metadata();
-        setMetadata(next);
-        setSelected((current) => current ?? next.resources.find((resource) => resource.navigation.visible)?.resource_id);
-      }
+      if (!session.principal.must_rotate_password) setMetadata(await api.metadata());
     } catch {
       setPrincipal(undefined);
       setMetadata(undefined);
     } finally { setLoading(false); }
   };
   useEffect(() => { void load(); }, []);
-  const resource = useMemo(() => metadata?.resources.find((item) => item.resource_id === selected), [metadata, selected]);
+  useEffect(() => {
+    const onPopState = () => setRoute(readRoute());
+    addEventListener("popstate", onPopState);
+    return () => removeEventListener("popstate", onPopState);
+  }, []);
+
+  const resource = useMemo(() => route.kind === "resource" ? metadata?.resources.find((item) => item.resource_id === route.resourceId) : undefined, [metadata, route]);
   if (loading) return <main className="center">Loading…</main>;
   if (!principal) return <Login onLogin={load} />;
   if (principal.must_rotate_password) return <Rotate onDone={load} />;
-  return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).map((item) => <button className={selected === item.resource_id ? "active" : ""} key={item.resource_id} onClick={() => setSelected(item.resource_id)}>{item.label}</button>)}</div>)}<button onClick={async () => { await api.logout(); location.reload(); }}>Logout</button></aside><main>{resource ? <Resource metadata={resource} /> : <div className="panel">Select a resource.</div>}</main></div>;
+
+  const content = route.kind === "resource"
+    ? resource
+      ? <Resource metadata={resource} />
+      : <div className="panel"><h2>Resource not found</h2><p>The requested resource is unavailable or not exposed by the current metadata.</p><button onClick={() => navigate("/")}>Back to resources</button></div>
+    : route.kind === "not-found"
+      ? <div className="panel"><h2>Page not found</h2><p>This route is not supported by the current MW Edge shell.</p><button onClick={() => navigate("/")}>Back to resources</button></div>
+      : <div className="panel"><h2>Select a resource</h2><p>Choose a resource from the navigation to begin.</p></div>;
+
+  return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).map((item) => <button className={route.kind === "resource" && route.resourceId === item.resource_id ? "active" : ""} key={item.resource_id} onClick={() => navigate(resourcePath(item.resource_id))}>{item.label}</button>)}</div>)}<button onClick={async () => { await api.logout(); location.reload(); }}>Logout</button></aside><main>{content}</main></div>;
 }
