@@ -1,5 +1,5 @@
 import { MODEL_NAME } from "./util.js";
-import type { ModelDefinition } from "./types.js";
+import type { ModelAuthority, ModelDefinition } from "./types.js";
 
 const TYPES = new Set([
   "String",
@@ -14,6 +14,15 @@ const TYPES = new Set([
   "Json",
 ]);
 
+const AUTHORITIES = new Set<ModelAuthority>([
+  "CANONICAL",
+  "PROJECTION",
+  "CACHE",
+  "OBSERVATION",
+  "REFERENCE",
+  "LOCAL_ONLY",
+]);
+
 export type RegisteredModel = ModelDefinition & { readonly owner: string };
 
 export class ModelRegistry {
@@ -23,6 +32,7 @@ export class ModelRegistry {
     if (!MODEL_NAME.test(model.name)) throw new Error(`Invalid model name ${model.name}`);
     if (this.#models.has(model.name)) throw new Error(`Duplicate model ${model.name}`);
     if (model.domain !== model.name.split(".")[0]) throw new Error(`Domain mismatch for ${model.name}`);
+    if (!AUTHORITIES.has(model.authority)) throw new Error(`Unknown authority ${model.authority} for ${model.name}`);
 
     for (const [name, field] of Object.entries(model.fields)) {
       if (!/^[a-z][a-z0-9_]*$/.test(name)) throw new Error(`Invalid field ${model.name}.${name}`);

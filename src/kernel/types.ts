@@ -24,11 +24,19 @@ export interface FieldDefinition {
   readonly ref_kind?: string;
 }
 
+export type ModelAuthority =
+  | "CANONICAL"
+  | "PROJECTION"
+  | "CACHE"
+  | "OBSERVATION"
+  | "REFERENCE"
+  | "LOCAL_ONLY";
+
 export interface ModelDefinition {
   readonly name: string;
   readonly domain: string;
   readonly component: string;
-  readonly authority: "CANONICAL" | "OBSERVATION" | "REFERENCE" | "LOCAL_ONLY";
+  readonly authority: ModelAuthority;
   readonly fields: Readonly<Record<string, FieldDefinition>>;
 }
 
@@ -117,4 +125,3 @@ export interface AppMetadata {
 }
 
 export type DbPrimitive = string | number | bigint | null | Uint8Array;
-export type DbRow = Record<string, unknown>;
