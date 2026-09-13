@@ -5,6 +5,7 @@ This section is for people installing, running, resetting, migrating, or trouble
 ## Start here
 
 - [Five-minute Quick Start](quick-start.md)
+- [Backup and restore](backup-restore.md)
 - [Security policy](../../SECURITY.md)
 - [Architecture overview](../architecture/overview.md)
 
@@ -17,7 +18,7 @@ The current executable operator commands live in [package.json](../../package.js
 - `pnpm profiles` — inspect available profiles.
 - `pnpm readiness` — run the full repository readiness gate.
 
-Detailed installation, profiles, migration/reset, backup/restore, and troubleshooting documentation is tracked by [issue #121](https://github.com/bjo163/mw-edge-dev/issues/121) and should be added beneath this operator section rather than copied into the root README.
+Release-to-release migration evidence is documented in the [migration compatibility matrix](../project/migration-compatibility.md). Backup/restore behavior and the disaster-recovery drill are documented in [Backup and restore](backup-restore.md).
 
 ## Data safety
 
