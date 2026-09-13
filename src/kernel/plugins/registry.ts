@@ -161,7 +161,19 @@ export const COMPONENTS = {
     "kind": "addon",
     "domain": "isp",
     "path": "addons/isp-accounting"
-  }
+  },
+  "mw.example": {
+    "id": "mw.example",
+    "kind": "domain_plugin",
+    "domain": "example",
+    "path": "examples/minimal-plugin"
+  },
+  "mw.example.note": {
+    "id": "mw.example.note",
+    "kind": "addon",
+    "domain": "example",
+    "path": "examples/minimal-addon"
+  },
 } as const satisfies Readonly<Record<string, ComponentRegistryEntry>>;
 
 export function componentEntry(id: string): ComponentRegistryEntry {

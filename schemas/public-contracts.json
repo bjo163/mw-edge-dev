@@ -1,0 +1,237 @@
+{
+  "schema_version": "1",
+  "stability_values": [
+    "stable",
+    "beta",
+    "experimental",
+    "internal",
+    "deprecated"
+  ],
+  "contracts": [
+    {
+      "id": "http.health",
+      "stability": "beta",
+      "owner": "area:api",
+      "source": "src/http/app.ts",
+      "tests": [
+        "test/http.test.ts"
+      ],
+      "docs": [
+        "docs/operators/quick-start.md"
+      ]
+    },
+    {
+      "id": "http.bootstrap",
+      "stability": "beta",
+      "owner": "area:api",
+      "source": "src/http/app.ts",
+      "tests": [
+        "test/bootstrap.test.ts"
+      ],
+      "docs": [
+        "docs/operators/quick-start.md"
+      ]
+    },
+    {
+      "id": "http.auth",
+      "stability": "beta",
+      "owner": "area:security",
+      "source": "src/http/app.ts",
+      "tests": [
+        "test/http.test.ts",
+        "test/sensitive-redaction.test.ts"
+      ],
+      "docs": [
+        "docs/security/README.md"
+      ]
+    },
+    {
+      "id": "http.metadata",
+      "stability": "beta",
+      "owner": "area:api",
+      "source": "src/http/app.ts",
+      "tests": [
+        "test/http.test.ts",
+        "test/sensitive-redaction.test.ts"
+      ],
+      "docs": [
+        "docs/architecture/overview.md"
+      ]
+    },
+    {
+      "id": "http.admin-resource",
+      "stability": "beta",
+      "owner": "area:api",
+      "source": "src/http/app.ts",
+      "tests": [
+        "test/sensitive-redaction.test.ts"
+      ],
+      "docs": [
+        "docs/architecture/overview.md"
+      ]
+    },
+    {
+      "id": "commands.v1",
+      "stability": "beta",
+      "owner": "area:kernel",
+      "source": "src/kernel/commands.ts",
+      "tests": [
+        "test/command-query-registry.test.ts"
+      ],
+      "docs": [
+        "docs/reference/contracts.md"
+      ]
+    },
+    {
+      "id": "queries.v1",
+      "stability": "beta",
+      "owner": "area:kernel",
+      "source": "src/kernel/queries.ts",
+      "tests": [
+        "test/command-query-registry.test.ts"
+      ],
+      "docs": [
+        "docs/reference/contracts.md"
+      ]
+    },
+    {
+      "id": "plugin-manifest.v1",
+      "stability": "beta",
+      "owner": "area:plugin",
+      "source": "schemas/plugin-manifest.schema.json",
+      "tests": [
+        "test/plugins.test.ts",
+        "test/examples.test.ts"
+      ],
+      "docs": [
+        "docs/reference/schemas.md",
+        "docs/developers/plugin-authoring.md"
+      ]
+    },
+    {
+      "id": "addon-manifest.v1",
+      "stability": "beta",
+      "owner": "area:plugin",
+      "source": "schemas/plugin-manifest.schema.json",
+      "tests": [
+        "test/plugins.test.ts",
+        "test/examples.test.ts"
+      ],
+      "docs": [
+        "docs/reference/schemas.md",
+        "docs/developers/plugin-authoring.md"
+      ]
+    },
+    {
+      "id": "profile.v1",
+      "stability": "beta",
+      "owner": "area:plugin",
+      "source": "schemas/profile.schema.json",
+      "tests": [
+        "test/contracts.test.ts",
+        "test/examples.test.ts"
+      ],
+      "docs": [
+        "docs/reference/schemas.md"
+      ]
+    },
+    {
+      "id": "resource-metadata.v1",
+      "stability": "beta",
+      "owner": "area:ui",
+      "source": "src/kernel/types.ts",
+      "tests": [
+        "test/sensitive-redaction.test.ts"
+      ],
+      "docs": [
+        "docs/reference/schemas.md"
+      ]
+    },
+    {
+      "id": "extension-registry.v1",
+      "stability": "beta",
+      "owner": "area:plugin",
+      "source": "src/kernel/plugins/extensions.ts",
+      "tests": [
+        "test/plugins.test.ts",
+        "test/examples.test.ts"
+      ],
+      "docs": [
+        "docs/developers/plugin-authoring.md"
+      ]
+    },
+    {
+      "id": "migration-baseline.v1",
+      "stability": "beta",
+      "owner": "area:migration",
+      "source": "src/kernel/schema.ts",
+      "tests": [
+        "test/bootstrap.test.ts"
+      ],
+      "docs": [
+        "docs/reference/contracts.md"
+      ]
+    },
+    {
+      "id": "seed-runner.v1",
+      "stability": "beta",
+      "owner": "area:plugin",
+      "source": "src/kernel/seeds/runner.ts",
+      "tests": [
+        "test/examples.test.ts"
+      ],
+      "docs": [
+        "docs/developers/plugin-authoring.md"
+      ]
+    },
+    {
+      "id": "sqlite-adapter.v1",
+      "stability": "beta",
+      "owner": "area:db",
+      "source": "src/kernel/database/adapter.ts",
+      "tests": [
+        "test/database-adapter.test.ts",
+        "test/sqlite-policy.test.ts"
+      ],
+      "docs": [
+        "docs/reference/contracts.md"
+      ]
+    },
+    {
+      "id": "d1-adapter.experimental",
+      "stability": "experimental",
+      "owner": "area:db",
+      "source": "src/kernel/database/d1.ts",
+      "tests": [
+        "test/database-adapter.test.ts"
+      ],
+      "docs": [
+        "docs/reference/contracts.md"
+      ]
+    },
+    {
+      "id": "operator-cli.v1",
+      "stability": "beta",
+      "owner": "area:ops",
+      "source": "package.json",
+      "tests": [
+        ".github/scripts/readiness.sh"
+      ],
+      "docs": [
+        "docs/operators/README.md"
+      ]
+    },
+    {
+      "id": "runtime-env.v1",
+      "stability": "beta",
+      "owner": "area:ops",
+      "source": "src/kernel/plugins/host.ts",
+      "tests": [
+        "test/bootstrap.test.ts"
+      ],
+      "docs": [
+        "docs/operators/quick-start.md"
+      ]
+    }
+  ]
+}

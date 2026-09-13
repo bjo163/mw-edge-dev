@@ -25,7 +25,7 @@ pnpm readiness
 
 ## Plugin and addon authoring
 
-The canonical authoring guide is tracked by [issue #50](https://github.com/bjo163/mw-edge-dev/issues/50). It belongs in this developer section when implemented. Until then, the executable contracts are the component registry, plugin manifests, lock verification, and host resolver in the source tree.
+Use the [plugin and addon authoring guide](plugin-authoring.md) together with the CI-executed [minimal plugin](../../examples/minimal-plugin/README.md) and [minimal addon](../../examples/minimal-addon/README.md). Exact field-level contracts live in the [schema reference](../reference/schemas.md).
 
 ## Debugging and tests
 

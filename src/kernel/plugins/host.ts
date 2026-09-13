@@ -3,6 +3,7 @@ import { extname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { COMPONENTS } from "./registry.js";
 import { validateManifest } from "./manifest.js";
+import { validateProfile } from "./profile.js";
 import { resolveComponents } from "./resolver.js";
 import { validateComponentContracts } from "./contracts.js";
 import { ExtensionRegistry } from "./extensions.js";
@@ -39,10 +40,7 @@ async function readJson(path: string): Promise<unknown> {
 }
 export async function loadProfile(profileId: string): Promise<ProfileDocument> {
   const value = await readJson(resolve(projectRoot, "profiles", `${profileId}.json`));
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`Invalid profile ${profileId}`);
-  const profile = value as Partial<ProfileDocument>;
-  if (profile.id !== profileId || !Array.isArray(profile.components) || !profile.schema_version || !profile.description) throw new Error(`Invalid profile ${profileId}`);
-  return profile as ProfileDocument;
+  return validateProfile(value, profileId);
 }
 export async function planProfile(profileId: string): Promise<{
   readonly profileDocument: ProfileDocument;
