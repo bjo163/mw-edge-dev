@@ -3,18 +3,49 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { DbRow } from "../types.js";
 
+export interface SqliteDatabaseOptions {
+  readonly busyTimeoutMs?: number;
+  readonly walAutoCheckpointPages?: number;
+}
+
+export type WalCheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
+
+export interface WalCheckpointResult {
+  readonly busy: number;
+  readonly log: number;
+  readonly checkpointed: number;
+}
+
+function nonNegativeInteger(value: number | undefined, fallback: number, name: string): number {
+  const resolved = value ?? fallback;
+  if (!Number.isSafeInteger(resolved) || resolved < 0) {
+    throw new Error(`${name} must be a non-negative safe integer`);
+  }
+  return resolved;
+}
+
 export class SqliteDatabase {
   readonly path: string;
   readonly db: DatabaseSync;
+  readonly busyTimeoutMs: number;
+  readonly walAutoCheckpointPages: number;
 
-  constructor(path: string) {
+  constructor(path: string, options: SqliteDatabaseOptions = {}) {
     if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
     this.path = path;
+    this.busyTimeoutMs = nonNegativeInteger(options.busyTimeoutMs, 5000, "busyTimeoutMs");
+    this.walAutoCheckpointPages = nonNegativeInteger(
+      options.walAutoCheckpointPages,
+      1000,
+      "walAutoCheckpointPages",
+    );
     this.db = new DatabaseSync(path);
     this.db.exec("PRAGMA foreign_keys = ON");
+    this.db.exec(`PRAGMA busy_timeout = ${this.busyTimeoutMs}`);
     if (path !== ":memory:") {
       this.db.exec("PRAGMA journal_mode = WAL");
       this.db.exec("PRAGMA synchronous = NORMAL");
+      this.db.exec(`PRAGMA wal_autocheckpoint = ${this.walAutoCheckpointPages}`);
     }
   }
 
@@ -32,6 +63,18 @@ export class SqliteDatabase {
 
   get<T extends DbRow = DbRow>(sql: string, params: readonly SQLInputValue[] = []): T | undefined {
     return this.db.prepare(sql).get(...params) as T | undefined;
+  }
+
+  checkpoint(mode: WalCheckpointMode = "PASSIVE"): WalCheckpointResult {
+    if (this.path === ":memory:") return { busy: 0, log: 0, checkpointed: 0 };
+    const row = this.get<{ busy: number; log: number; checkpointed: number }>(
+      `PRAGMA wal_checkpoint(${mode})`,
+    );
+    return {
+      busy: Number(row?.busy ?? 0),
+      log: Number(row?.log ?? 0),
+      checkpointed: Number(row?.checkpointed ?? 0),
+    };
   }
 
   transaction<T>(fn: (db: SqliteDatabase) => T): T {
