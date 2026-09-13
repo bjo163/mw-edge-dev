@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.2 - 2026-09-13
+
+- fix: keep dev synchronized after automated releases (00646f3)
+- fix: sync dev from release workflow (2c08577)
+
+
 ## v0.2.1 - 2026-09-13
 
 - fix: harden governance and persistent dev branch sync (ae63d04)
