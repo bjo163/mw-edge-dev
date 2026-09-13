@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/nightly.yml"
       - ".github/scripts/nightly-lifecycle.sh"
+      - ".github/scripts/quickstart-smoke.sh"
       - ".github/scripts/governance-check.sh"
       - "scripts/migrate.ts"
       - "scripts/factory-reset.ts"
@@ -37,6 +38,8 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - name: Fresh frozen install
         run: pnpm install --frozen-lockfile
+      - name: Documented Quick Start smoke
+        run: bash .github/scripts/quickstart-smoke.sh
       - name: Canonical readiness
         run: pnpm readiness
       - name: Governance drift
