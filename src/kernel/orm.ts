@@ -1,7 +1,7 @@
 import type { SQLInputValue } from "node:sqlite";
 import { q, nowIso } from "./util.js";
 import { tableFor, primaryRefFor } from "./schema.js";
-import type { FieldDefinition, RecordValue } from "./types.js";
+import type { DbRow, FieldDefinition, RecordValue } from "./types.js";
 import type { RegisteredModel, ModelRegistry } from "./model-registry.js";
 import type { DomainDatabaseRouter } from "./database/router.js";
 import type { SqliteDatabase } from "./database/sqlite.js";
@@ -30,7 +30,7 @@ function decode(field: FieldDefinition, value: unknown): unknown {
   return value;
 }
 
-function cleanRow(model: RegisteredModel, row: OutputRecord | undefined): OutputRecord | undefined {
+function cleanRow(model: RegisteredModel, row: DbRow | undefined): OutputRecord | undefined {
   if (!row) return row;
   const output: OutputRecord = { ...row };
   for (const [name, field] of Object.entries(model.fields)) {
@@ -109,13 +109,13 @@ export class ModelStore {
     if (this.primaryRef && typeof ref === "string") {
       return cleanRow(
         this.model,
-        this.db.get<OutputRecord>(
+        this.db.get<DbRow>(
           `SELECT * FROM ${q(this.table)} WHERE ${q(this.primaryRef)}=?`,
           [ref],
         ),
       );
     }
-    return cleanRow(this.model, this.db.get<OutputRecord>(`SELECT * FROM ${q(this.table)} WHERE id=?`, [ref]));
+    return cleanRow(this.model, this.db.get<DbRow>(`SELECT * FROM ${q(this.table)} WHERE id=?`, [ref]));
   }
 
   find(options: {
@@ -150,7 +150,7 @@ export class ModelStore {
     const boundedOffset = Math.max(Number(offset) || 0, 0);
     const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
     return this.db
-      .all<OutputRecord>(
+      .all<DbRow>(
         `SELECT * FROM ${q(this.table)}${where} ORDER BY ${order} LIMIT ? OFFSET ?`,
         [...params, boundedLimit, boundedOffset],
       )

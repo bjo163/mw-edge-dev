@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { SqliteDatabase } from "../src/kernel/database/sqlite.js";
+import type { DbRow } from "../src/kernel/types.js";
 
 const durationSeconds = Number(process.env.MW_SQLITE_SOAK_SECONDS ?? 120);
 if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
@@ -46,7 +47,7 @@ try {
     maxRss = Math.max(maxRss, process.memoryUsage().rss);
   }
 
-  const quickRow = db.get<Record<string, unknown>>("PRAGMA quick_check");
+  const quickRow = db.get<DbRow>("PRAGMA quick_check");
   const quickCheck = String(Object.values(quickRow ?? {})[0] ?? "unknown");
   const foreignKeyViolations = db.all("PRAGMA foreign_key_check").length;
   const finalCheckpoint = db.checkpoint("TRUNCATE");
