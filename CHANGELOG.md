@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.5.0 - 2026-09-13
+
+- merge: promote validated dev changes to main (#369) (550a70a)
+- fix(test): complete factory-reset principal fixture (#406) (2c6e13c)
+- fix(test): use principal_ref in reset fixture (#405) (0e8570c)
+- fix(test): narrow factory-reset seed count (#404) (29224fd)
+- feat(sqlite): bound writer waits and control WAL checkpoints (#403) (6feed07)
+- test(security): enforce sensitive-field redaction regressions (#402) (a2d8d3a)
+- feat(domain): add command idempotency-key contract (#401) (33e1b7d)
+- test(reset): prove fresh install reset equivalence (51e93db)
+- feat(kernel): add typed command and query registries (8f437d8)
+
+
 ## v0.4.0 - 2026-09-13
 
 - feat(release): gate v1 tags on production evidence (f98658a)
