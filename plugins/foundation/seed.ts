@@ -1,22 +1,21 @@
 import { readFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { applySeed } from "../../src/kernel/seeds/runner.js";
 import type { SeedContext } from "../../src/kernel/plugins/host.js";
 import type { InputRecord } from "../../src/kernel/orm.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-async function readRows(name: string): Promise<readonly InputRecord[]> {
-  return JSON.parse(await readFile(resolve(here, "data/reference", name), "utf8")) as readonly InputRecord[];
+async function readRows(context: SeedContext, name: string): Promise<readonly InputRecord[]> {
+  const path = resolve(context.projectRoot, "plugins/foundation/data/reference", name);
+  return JSON.parse(await readFile(path, "utf8")) as readonly InputRecord[];
 }
 
 export async function seed(context: SeedContext): Promise<void> {
   const payload = {
-    countries: await readRows("countries.json"),
-    currencies: await readRows("currencies.json"),
-    languages: await readRows("languages.json"),
-    timezones: await readRows("timezones.json"),
-    locales: await readRows("locales.json"),
+    countries: await readRows(context, "countries.json"),
+    currencies: await readRows(context, "currencies.json"),
+    languages: await readRows(context, "languages.json"),
+    timezones: await readRows(context, "timezones.json"),
+    locales: await readRows(context, "locales.json"),
   };
 
   applySeed({

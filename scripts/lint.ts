@@ -10,28 +10,19 @@ async function walk(path: string): Promise<void> {
     const childStat = await stat(child);
     if (childStat.isDirectory()) {
       await walk(child);
-    } else if (/\.(ts|tsx|json)$/.test(name)) {
-      const text = await readFile(child, "utf8");
-      if (text.includes("eval(") || text.includes("new Function(")) {
-        errors.push(`${child}: executable eval forbidden`);
-      }
-      if (/\bany\b/.test(text) && !child.includes("node_modules")) {
-        errors.push(`${child}: explicit any is forbidden`);
-      }
+      continue;
+    }
+    if (!/\.(ts|tsx|json)$/.test(name)) continue;
+    const text = await readFile(child, "utf8");
+    if (text.includes("eval(") || text.includes("new Function(")) errors.push(`${child}: executable evaluation forbidden`);
+    if (!child.endsWith("scripts/lint.ts") && /:\s*any\b|<any\b|\bas any\b/.test(text)) {
+      errors.push(`${child}: unbounded TypeScript escape hatch forbidden`);
     }
   }
 }
 
 for (const root of roots) {
-  try {
-    await walk(root);
-  } catch {
-    // Missing optional source roots are ignored.
-  }
+  try { await walk(root); } catch { /* optional root */ }
 }
-
-if (errors.length) {
-  console.error(errors.join("\n"));
-  process.exit(1);
-}
+if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
 console.log("lint: ok");

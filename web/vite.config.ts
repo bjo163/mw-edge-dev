@@ -1,8 +1,9 @@
-import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  root: new URL(".", import.meta.url).pathname,
+  root: fileURLToPath(new URL(".", import.meta.url)),
   base: "./",
   plugins: [react()],
   server: {

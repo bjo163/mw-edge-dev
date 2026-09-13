@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { api, type AppMetadata, type Principal, type ResourceMetadata } from "./api.js";
+import { api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
 
 function Login({ onLogin }: { readonly onLogin: () => Promise<void> }) {
   const [username, setUsername] = useState("admin");
@@ -7,12 +7,8 @@ function Login({ onLogin }: { readonly onLogin: () => Promise<void> }) {
   const [error, setError] = useState("");
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    try {
-      await api.login(username, password);
-      await onLogin();
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Login failed");
-    }
+    try { await api.login(username, password); await onLogin(); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : "Login failed"); }
   };
   return <main className="center"><form className="panel login" onSubmit={submit}><div className="eyebrow">MOONWITNESS</div><h1>MW Edge</h1><p>Standalone local operator access</p><label>Username<input value={username} onChange={(event) => setUsername(event.target.value)} /></label><label>Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>{error && <div className="error">{error}</div>}<button>Enter</button></form></main>;
 }
@@ -28,7 +24,8 @@ function Resource({ metadata }: { readonly metadata: ResourceMetadata }) {
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<Record<string, unknown>>({});
   const refresh = async () => {
-    try { setData(await api.list(metadata.resource_id)); } catch (failure) { setError(failure instanceof Error ? failure.message : "Load failed"); }
+    try { setData(await api.list(metadata.resource_id)); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : "Load failed"); }
   };
   useEffect(() => { void refresh(); }, [metadata.resource_id]);
 
@@ -42,31 +39,25 @@ export function App() {
   const [metadata, setMetadata] = useState<AppMetadata>();
   const [selected, setSelected] = useState<string>();
   const [loading, setLoading] = useState(true);
-
   const load = async () => {
     setLoading(true);
     try {
       const session = await api.session();
       setPrincipal(session.principal);
       if (!session.principal.must_rotate_password) {
-        const nextMetadata = await api.metadata();
-        setMetadata(nextMetadata);
-        setSelected((current) => current ?? nextMetadata.resources.find((resource) => resource.navigation.visible)?.resource_id);
+        const next = await api.metadata();
+        setMetadata(next);
+        setSelected((current) => current ?? next.resources.find((resource) => resource.navigation.visible)?.resource_id);
       }
     } catch {
       setPrincipal(undefined);
       setMetadata(undefined);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
-
   useEffect(() => { void load(); }, []);
   const resource = useMemo(() => metadata?.resources.find((item) => item.resource_id === selected), [metadata, selected]);
-
   if (loading) return <main className="center">Loading…</main>;
   if (!principal) return <Login onLogin={load} />;
   if (principal.must_rotate_password) return <Rotate onDone={load} />;
-
   return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).map((item) => <button className={selected === item.resource_id ? "active" : ""} key={item.resource_id} onClick={() => setSelected(item.resource_id)}>{item.label}</button>)}</div>)}<button onClick={async () => { await api.logout(); location.reload(); }}>Logout</button></aside><main>{resource ? <Resource metadata={resource} /> : <div className="panel">Select a resource.</div>}</main></div>;
 }

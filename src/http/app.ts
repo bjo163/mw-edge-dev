@@ -1,16 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { existsSync, unlinkSync } from "node:fs";
 import { resolve } from "node:path";
-import { Hono } from "hono";
+import { Hono, type Context, type Next } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { MwError } from "../kernel/errors.js";
 import type { BootEnvironment } from "../kernel/plugins/host.js";
-import type { OutputRecord } from "../kernel/orm.js";
+import type { InputRecord, OutputRecord } from "../kernel/orm.js";
 import { generateSessionToken, hashPassword, tokenHash, verifyPassword } from "../standalone/auth.js";
 
-type AppVariables = {
-  request_id: string;
-  auth: { session: OutputRecord; principal: OutputRecord };
+type AppEnv = {
+  Variables: {
+    request_id: string;
+    auth: { session: OutputRecord; principal: OutputRecord };
+  };
 };
 
 function publicRecord(env: BootEnvironment, modelName: string, row: OutputRecord | undefined): OutputRecord | undefined {
@@ -22,11 +24,11 @@ function publicRecord(env: BootEnvironment, modelName: string, row: OutputRecord
   return output;
 }
 
-export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables }> {
-  const app = new Hono<{ Variables: AppVariables }>();
+export function createApp(env: BootEnvironment): Hono<AppEnv> {
+  const app = new Hono<AppEnv>();
   const standalone = env.registry.has("standalone.principal") && env.registry.has("standalone.session");
 
-  const authenticate = (token: string | undefined): AppVariables["auth"] | undefined => {
+  const authenticate = (token: string | undefined): AppEnv["Variables"]["auth"] | undefined => {
     if (!standalone || !token) return undefined;
     const session = env.orm.model("standalone.session").findOne({ filters: { token_hash: tokenHash(token) } });
     if (!session || session.revoked_at || Date.parse(String(session.expires_at)) <= Date.now()) return undefined;
@@ -39,9 +41,8 @@ export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables 
     context.set("request_id", context.req.header("x-request-id") ?? randomUUID());
     const method = context.req.method.toUpperCase();
     const origin = context.req.header("origin");
-    if (origin && !["GET", "HEAD", "OPTIONS"].includes(method)) {
-      const requestOrigin = new URL(context.req.url).origin;
-      if (origin !== requestOrigin) throw new MwError("ACCESS_DENIED", "Cross-origin state change denied", 403);
+    if (origin && !["GET", "HEAD", "OPTIONS"].includes(method) && origin !== new URL(context.req.url).origin) {
+      throw new MwError("ACCESS_DENIED", "Cross-origin state change denied", 403);
     }
     await next();
     context.header("x-request-id", context.get("request_id"));
@@ -61,7 +62,6 @@ export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables 
   app.get("/health", (context) =>
     context.json({ status: "ok", profile: env.profile, models: env.registry.list().length, components: env.ordered.length }),
   );
-
   app.get("/api/bootstrap/status", (context) =>
     context.json({
       standalone,
@@ -71,18 +71,10 @@ export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables 
 
   app.post("/api/auth/login", async (context) => {
     if (!standalone) throw new MwError("NOT_FOUND", "Standalone login is not enabled", 404);
-    if (Number(context.req.header("content-length") ?? 0) > 65536) {
-      throw new MwError("PAYLOAD_TOO_LARGE", "Request body too large", 413);
-    }
+    if (Number(context.req.header("content-length") ?? 0) > 65536) throw new MwError("PAYLOAD_TOO_LARGE", "Request body too large", 413);
     const body = (await context.req.json()) as { username?: unknown; password?: unknown };
-    const principal = env.orm.model("standalone.principal").findOne({
-      filters: { username: String(body.username ?? "") },
-    });
-    if (
-      !principal ||
-      !principal.login_enabled ||
-      !verifyPassword(String(body.password ?? ""), principal.password_hash)
-    ) {
+    const principal = env.orm.model("standalone.principal").findOne({ filters: { username: String(body.username ?? "") } });
+    if (!principal || !principal.login_enabled || !verifyPassword(String(body.password ?? ""), principal.password_hash)) {
       throw new MwError("ACCESS_DENIED", "Invalid credentials", 403);
     }
 
@@ -106,10 +98,7 @@ export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables 
     return context.json({ principal: publicRecord(env, "standalone.principal", principal) });
   });
 
-  const requireAdmin = async (
-    context: Parameters<Parameters<typeof app.use>[1]>[0],
-    next: () => Promise<void>,
-  ): Promise<void> => {
+  const requireAdmin = async (context: Context<AppEnv>, next: Next): Promise<void> => {
     const state = authenticate(getCookie(context, "mw_session"));
     if (!state || !state.principal.is_superuser) throw new MwError("ACCESS_DENIED", "Standalone superuser required", 403);
     context.set("auth", state);
@@ -122,12 +111,10 @@ export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables 
     deleteCookie(context, "mw_session", { path: "/" });
     return context.json({ ok: true });
   });
-
   app.get("/api/auth/session", requireAdmin, (context) => {
     const { principal } = context.get("auth");
     return context.json({ principal: publicRecord(env, "standalone.principal", principal) });
   });
-
   app.post("/api/auth/change-password", requireAdmin, async (context) => {
     const { principal } = context.get("auth");
     const body = (await context.req.json()) as { password?: unknown };
@@ -137,11 +124,7 @@ export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables 
     });
     const credentialFile = resolve(process.cwd(), "data/.bootstrap/admin-credentials.json");
     if (existsSync(credentialFile)) {
-      try {
-        unlinkSync(credentialFile);
-      } catch {
-        // Password change remains authoritative even if best-effort cleanup fails.
-      }
+      try { unlinkSync(credentialFile); } catch { /* best effort */ }
     }
     return context.json({ ok: true });
   });
@@ -165,16 +148,13 @@ export function createApp(env: BootEnvironment): Hono<{ Variables: AppVariables 
       offset: Math.max(offset || 0, 0),
     });
   });
-
   app.post("/api/admin/resources/:model", async (context) => {
     const modelName = context.req.param("model");
     const metadata = env.metadata.resources.find((resource) => resource.resource_id === modelName);
     if (!metadata?.crud.create) throw new MwError("ACCESS_DENIED", "Resource is not creatable", 403);
-    const body = (await context.req.json()) as Record<string, unknown>;
+    const body = (await context.req.json()) as InputRecord;
     for (const [name, field] of Object.entries(env.registry.get(modelName).fields)) {
-      if (field.sensitive && Object.hasOwn(body, name)) {
-        throw new MwError("ACCESS_DENIED", "Sensitive fields require an explicit domain command", 403);
-      }
+      if (field.sensitive && Object.hasOwn(body, name)) throw new MwError("ACCESS_DENIED", "Sensitive fields require an explicit domain command", 403);
     }
     return context.json(publicRecord(env, modelName, env.orm.model(modelName).create(body)), 201);
   });
