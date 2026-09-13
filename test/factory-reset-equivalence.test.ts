@@ -67,6 +67,8 @@ test("factory reset recreates the same normalized baseline as a fresh install", 
 
   const fresh = await boot({ profile: PROFILE, dataDir });
   const freshSnapshot = snapshot(fresh);
+  const baselinePrincipalCount = freshSnapshot.seedCounts["standalone.principal"];
+  if (baselinePrincipalCount === undefined) throw new Error("Missing standalone.principal seed count");
 
   fresh.orm.model("standalone.principal").create({
     ref: "test.dirty-user",
@@ -75,7 +77,7 @@ test("factory reset recreates the same normalized baseline as a fresh install", 
     login_enabled: false,
     is_superuser: false,
   });
-  assert.equal(fresh.orm.model("standalone.principal").count(), freshSnapshot.seedCounts["standalone.principal"] + 1);
+  assert.equal(fresh.orm.model("standalone.principal").count(), baselinePrincipalCount + 1);
   fresh.close();
 
   execFileSync(
