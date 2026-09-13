@@ -17,6 +17,9 @@ run_gate() {
 [[ -n "$summary" ]] && printf '## MW Edge readiness\n\n' >> "$summary"
 run_gate "format" pnpm format:check
 run_gate "documentation" pnpm docs:check
+docs_site_dir="$(mktemp -d)"
+trap 'rm -rf "$docs_site_dir"' EXIT
+run_gate "versioned documentation site" pnpm exec tsx scripts/docs-site.ts --out "$docs_site_dir"
 run_gate "capability inventory" pnpm capabilities
 run_gate "lint + typecheck" pnpm lint
 run_gate "plugin lock" pnpm plugins:lock:check
