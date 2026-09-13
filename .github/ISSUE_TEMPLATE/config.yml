@@ -1,2 +1,5 @@
 blank_issues_enabled: true
-contact_links: []
+contact_links:
+  - name: Security report
+    url: https://github.com/bjo163/mw-edge-dev/security/policy
+    about: Read the Security Policy before sharing sensitive information.
