@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.0 - 2026-09-13
+
+- feat(release): gate v1 tags on production evidence (f98658a)
+- feat(release): gate v1 tags on production evidence (28892f5)
+- test(standalone): verify clone-to-login persistence (d7fd42e)
+- test(standalone): verify clone-to-login persistence (580ac9c)
+- ci(security): self-test Scorecard on default-branch changes (757b185)
+- ci(security): self-test scorecard on default branch changes (371d94f)
+
+
 ## v0.3.0 - 2026-09-13
 
 - Merge dev into main for validated release batch (039023f)
