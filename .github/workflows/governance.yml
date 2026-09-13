@@ -1,14 +1,22 @@
 name: governance
+
 on:
   push:
-    branches: [main]
-    paths: [".github/workflows/governance.yml"]
+    branches:
+      - main
+    paths:
+      - .github/workflows/governance.yml
   issues:
-    types: [opened, reopened, edited]
+    types:
+      - opened
+      - reopened
+      - edited
   workflow_dispatch:
+
 permissions:
   contents: read
   issues: write
+
 jobs:
   govern:
     runs-on: ubuntu-latest
@@ -21,9 +29,14 @@ jobs:
         run: |
           set -euo pipefail
           ensure_label() {
-            local name="$1" color="$2" description="$3"
-            local encoded="$(jq -rn --arg v "$name" '$v|@uri')"
-            gh api "repos/$REPO/labels/$encoded" >/dev/null 2>&1 ||               gh api -X POST "repos/$REPO/labels" -f name="$name" -f color="$color" -f description="$description" >/dev/null
+            local name="$1"
+            local color="$2"
+            local description="$3"
+            local encoded
+            encoded="$(jq -rn --arg v "$name" '$v|@uri')"
+            if ! gh api "repos/$REPO/labels/$encoded" >/dev/null 2>&1; then
+              gh api -X POST "repos/$REPO/labels" -f name="$name" -f color="$color" -f description="$description" >/dev/null
+            fi
           }
           ensure_label "type:task" "5319E7" "Small executable task"
           ensure_label "type:feature" "1D76DB" "Feature or capability"
@@ -31,37 +44,40 @@ jobs:
           ensure_label "priority:P0" "B60205" "Release blocker"
           ensure_label "priority:P1" "D93F0B" "High priority"
           ensure_label "priority:P2" "FBCA04" "Normal priority"
-          ensure_label "priority:P3" "C5DEF5" "Future / low priority"
+          ensure_label "priority:P3" "C5DEF5" "Future or low priority"
           ensure_label "area:kernel" "6F42C1" "Kernel and core contracts"
           ensure_label "area:domain" "7057FF" "Business domain semantics"
           ensure_label "area:orm" "0E8A16" "Native ORM"
           ensure_label "area:db" "0052CC" "Database and persistence"
           ensure_label "area:migration" "006B75" "Migrations and schema evolution"
-          ensure_label "area:seed" "2F855A" "Base/reference/demo data"
-          ensure_label "area:plugin" "8B5CF6" "Plugin/addon/profile system"
-          ensure_label "area:ui" "C2E0C6" "Metadata-driven UI"
-          ensure_label "area:api" "0366D6" "HTTP/API/contracts"
+          ensure_label "area:seed" "2F855A" "Base reference and demo data"
+          ensure_label "area:plugin" "8B5CF6" "Plugin addon and profile system"
+          ensure_label "area:ui" "C2E0C6" "Metadata driven UI"
+          ensure_label "area:api" "0366D6" "HTTP API and contracts"
           ensure_label "area:security" "D4C5F9" "Security and authorization boundaries"
-          ensure_label "area:ops" "0B7285" "Operations, backup, observability"
+          ensure_label "area:ops" "0B7285" "Operations backup and observability"
           ensure_label "area:testing" "1F6FEB" "Tests and release gates"
-          ensure_label "area:release" "A2EEEF" "Release/version automation"
+          ensure_label "area:release" "A2EEEF" "Release and version automation"
           ensure_label "parallel-safe" "BFDADC" "Safe to execute in parallel"
           ensure_label "status:blocked" "000000" "Blocked by dependency"
           ensure_label "good first issue" "7057FF" "Small isolated task"
 
           ensure_milestone() {
-            local title="$1" description="$2"
-            local number="$(gh api --paginate "repos/$REPO/milestones?state=all&per_page=100" --jq ".[] | select(.title == \"$title\") | .number" | head -n1)"
+            local title="$1"
+            local description="$2"
+            local number
+            number="$(gh api --paginate "repos/$REPO/milestones?state=all&per_page=100" --jq ".[] | select(.title == \"$title\") | .number" | head -n1)"
             if [ -z "$number" ]; then
               gh api -X POST "repos/$REPO/milestones" -f title="$title" -f description="$description" >/dev/null
             fi
           }
-          ensure_milestone "V0.1 — Business Engine Ready" "Typed domain commands, lifecycle enforcement, deterministic migrations/seeds/reset and standalone release gate."
-          ensure_milestone "V0.2 — Platform Hardening" "Authorization integration, outbox, API/SDK, observability, backup/restore and operational hardening."
-          ensure_milestone "V0.3 — Cloud & Extensibility" "D1 adapter path, signed plugin supply chain and future WASM/WIT extension seam."
-          ensure_milestone "V1.0 — Production" "Production-grade ecosystem, provider integrations and stable extension contracts."
+          ensure_milestone "V0.1 — Business Engine Ready" "Typed domain commands lifecycle deterministic migrations seeds reset and standalone release gate."
+          ensure_milestone "V0.2 — Platform Hardening" "Authorization integration outbox API SDK observability backup restore and operational hardening."
+          ensure_milestone "V0.3 — Cloud & Extensibility" "D1 adapter signed plugin supply chain and future WASM WIT extension seam."
+          ensure_milestone "V1.0 — Production" "Production ecosystem provider integrations and stable extension contracts."
+
       - name: Apply issue metadata
-        if: ${{ github.event_name == 'issues' }}
+        if: "${{ github.event_name == 'issues' }}"
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -76,14 +92,18 @@ jobs:
 ' "$BODY" | sed -n 's/^Labels:[[:space:]]*//p' | head -n1)"
           if [ -n "$milestone" ]; then
             number="$(gh api --paginate "repos/$REPO/milestones?state=all&per_page=100" --jq ".[] | select(.title == \"$milestone\") | .number" | head -n1)"
-            [ -n "$number" ] && gh api -X PATCH "repos/$REPO/issues/$ISSUE" -F milestone="$number" >/dev/null
+            if [ -n "$number" ]; then
+              gh api -X PATCH "repos/$REPO/issues/$ISSUE" -F milestone="$number" >/dev/null
+            fi
           fi
           if [ -n "$labels" ]; then
             IFS=',' read -ra parts <<< "$labels"
             args=()
             for part in "${parts[@]}"; do
               label="$(echo "$part" | xargs)"
-              [ -n "$label" ] && args+=("-f" "labels[]=$label")
+              if [ -n "$label" ]; then args+=("-f" "labels[]=$label"); fi
             done
-            [ "${#args[@]}" -eq 0 ] || gh api -X POST "repos/$REPO/issues/$ISSUE/labels" "${args[@]}" >/dev/null
+            if [ "${#args[@]}" -gt 0 ]; then
+              gh api -X POST "repos/$REPO/issues/$ISSUE/labels" "${args[@]}" >/dev/null
+            fi
           fi

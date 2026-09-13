@@ -2,7 +2,8 @@ name: version-release
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -13,7 +14,7 @@ concurrency:
 
 jobs:
   release:
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    if: "${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,9 +35,12 @@ jobs:
           subjects="$(git log "$range" --pretty='%s%n%b' 2>/dev/null || git log --pretty='%s%n%b')"
           bump="patch"
           if printf '%s
-' "$subjects" | grep -Eq 'BREAKING CHANGE|^[a-z]+(\([^)]*\))?!:'; then bump="major";
+' "$subjects" | grep -Eq 'BREAKING CHANGE|^[a-z]+(\([^)]*\))?!:'; then
+            bump="major"
           elif printf '%s
-' "$subjects" | grep -Eq '^feat(\([^)]*\))?:'; then bump="minor"; fi
+' "$subjects" | grep -Eq '^feat(\([^)]*\))?:'; then
+            bump="minor"
+          fi
           next="$(node - "$current" "$bump" <<'NODE'
           const [current,bump]=process.argv.slice(2);
           let [major,minor,patch]=current.split('.').map(Number);
@@ -61,12 +65,16 @@ jobs:
             echo
             echo "## v$VERSION - $(date -u +%Y-%m-%d)"
             echo
-            if [ -n "$previous" ]; then git log "$previous..HEAD" --pretty='- %s (%h)'; else git log --pretty='- %s (%h)'; fi
+            if [ -n "$previous" ]; then
+              git log "$previous..HEAD" --pretty='- %s (%h)'
+            else
+              git log --pretty='- %s (%h)'
+            fi
             echo
             if [ -f CHANGELOG.md ]; then tail -n +2 CHANGELOG.md; fi
           } > CHANGELOG.new
           mv CHANGELOG.new CHANGELOG.md
-      - name: Commit, tag and publish release
+      - name: Commit tag and publish release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
