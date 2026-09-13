@@ -46,6 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: read
     concurrency:
       group: mw-edge-repository-mutation
       cancel-in-progress: false

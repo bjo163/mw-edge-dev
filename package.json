@@ -21,7 +21,7 @@
     "test:unit": "tsx --test test/*.test.ts",
     "test:bootstrap": "tsx --test test/bootstrap.test.ts",
     "test:http": "tsx --test test/http.test.ts",
-    "test:automation": "bash .github/tests/release-policy.sh && bash .github/tests/branch-state.sh",
+    "test:automation": "bash .github/tests/release-policy.sh && bash .github/tests/branch-state.sh && bash .github/tests/production-readiness.sh",
     "lint": "pnpm typecheck && tsx scripts/lint.ts",
     "format:check": "tsx scripts/format-check.ts",
     "readiness": "bash .github/scripts/readiness.sh",
@@ -32,7 +32,8 @@
     "plugins:lock:write": "tsx scripts/plugins-lock.ts --write",
     "plugins:lock:check": "tsx scripts/plugins-lock.ts --check",
     "docs:check": "tsx scripts/docs-check.ts",
-    "capabilities": "tsx scripts/capabilities.ts"
+    "capabilities": "tsx scripts/capabilities.ts",
+    "readiness:production": "bash .github/scripts/production-readiness.sh"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",

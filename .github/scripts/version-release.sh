@@ -69,6 +69,15 @@ process.stdout.write([major,minor,patch].join('.'));
 NODE
 )"
 tag="v$next"
+next_major="${next%%.*}"
+
+if (( next_major >= 1 )); then
+  export REPO="${REPO:-${GITHUB_REPOSITORY:-}}"
+  export RELEASE_CANDIDATE="$tag"
+  export EXPECTED_SHA="$expected_sha"
+  bash .github/scripts/production-readiness.sh
+  write_summary "- PASS production readiness gate for $tag"
+fi
 
 if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
   existing="$(git rev-list -n1 "$tag")"
