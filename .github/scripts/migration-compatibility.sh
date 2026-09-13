@@ -13,6 +13,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
+if ! git -C "$root" rev-parse --verify "${from_tag}^{commit}" >/dev/null 2>&1; then
+  git -C "$root" fetch --force --depth=1 origin "refs/tags/${from_tag}:refs/tags/${from_tag}"
+fi
 git -C "$root" rev-parse --verify "${from_tag}^{commit}" >/dev/null
 git -C "$root" worktree add --detach "$old_tree" "$from_tag" >/dev/null
 ln -s "$root/node_modules" "$old_tree/node_modules"
