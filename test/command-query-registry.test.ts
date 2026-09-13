@@ -3,8 +3,11 @@ import assert from "node:assert/strict";
 import {
   CommandRegistry,
   QueryRegistry,
+  executeIdempotently,
   type DomainCommand,
   type DomainQuery,
+  type IdempotencyScope,
+  type IdempotencyStore,
 } from "../src/index.js";
 
 test("typed command registry resolves deterministically and fails closed", () => {
@@ -42,7 +45,82 @@ test("typed command registry resolves deterministically and fails closed", () =>
     () => new CommandRegistry().register({ id: "crm.organization.create", version: "1.0.0", domain: "business" }),
     /Command domain mismatch/,
   );
+  assert.throws(
+    () =>
+      new CommandRegistry().register({
+        id: "business.invalid-policy",
+        version: "1.0.0",
+        domain: "business",
+        idempotency: "sometimes" as never,
+      }),
+    /Invalid idempotency policy/,
+  );
   assert.throws(() => registry.get("business.unknown"), /Unknown command business\.unknown/);
+});
+
+test("idempotency contract prevents duplicate committed execution for the same key", () => {
+  class MemoryIdempotencyStore implements IdempotencyStore {
+    readonly #results = new Map<string, unknown>();
+
+    execute<Output>(scope: IdempotencyScope, operation: () => Output): Output {
+      const id = `${scope.command_id}\u0000${scope.key}`;
+      if (this.#results.has(id)) return this.#results.get(id) as Output;
+      const result = operation();
+      this.#results.set(id, result);
+      return result;
+    }
+  }
+
+  const submit: DomainCommand<{ readonly order_ref: string }, { readonly receipt: string }> = {
+    id: "commerce.order.submit",
+    version: "1.0.0",
+    domain: "commerce",
+    idempotency: "required",
+  };
+  const store = new MemoryIdempotencyStore();
+  let executions = 0;
+
+  const first = executeIdempotently(
+    submit,
+    () => ({ receipt: `receipt-${++executions}` }),
+    { key: "retry-42", store },
+  );
+  const second = executeIdempotently(
+    submit,
+    () => ({ receipt: `receipt-${++executions}` }),
+    { key: "retry-42", store },
+  );
+
+  assert.deepEqual(first, { receipt: "receipt-1" });
+  assert.deepEqual(second, first);
+  assert.equal(executions, 1);
+
+  assert.throws(
+    () => executeIdempotently(submit, () => ({ receipt: "never" })),
+    /Idempotency key required for commerce\.order\.submit/,
+  );
+  assert.throws(
+    () => executeIdempotently(submit, () => ({ receipt: "never" }), { key: "retry-43" }),
+    /Idempotency store required/,
+  );
+
+  const optional: DomainCommand<void, number> = {
+    id: "commerce.order.preview",
+    version: "1.0.0",
+    domain: "commerce",
+    idempotency: "optional",
+  };
+  assert.equal(executeIdempotently(optional, () => 7), 7);
+
+  const undeclared: DomainCommand<void, number> = {
+    id: "commerce.order.inspect",
+    version: "1.0.0",
+    domain: "commerce",
+  };
+  assert.throws(
+    () => executeIdempotently(undeclared, () => 8, { key: "unexpected", store }),
+    /does not declare idempotency semantics/,
+  );
 });
 
 test("typed query registry remains separate and versioned", () => {
