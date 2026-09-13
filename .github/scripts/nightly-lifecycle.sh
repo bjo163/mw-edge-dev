@@ -36,6 +36,9 @@ pnpm exec tsx scripts/migrate.ts --profile "$MW_PROFILE" --data-dir "$data_dir" 
 echo "==> isolated factory reset"
 pnpm exec tsx scripts/factory-reset.ts --yes --no-backup --profile "$MW_PROFILE" --data-dir "$data_dir" | tee "$artifact_dir/factory-reset.json"
 
+echo "==> SQLite integrity"
+pnpm exec tsx scripts/db-integrity.ts --profile "$MW_PROFILE" --data-dir "$data_dir" | tee "$artifact_dir/db-integrity.json"
+
 echo "==> compiled server smoke"
 node dist/src/server.js >"$artifact_dir/server.log" 2>&1 &
 server_pid="$!"
@@ -73,6 +76,18 @@ server_pid=""
   printf -- '- PASS backup/restore disaster-recovery drill\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS clean-state migration\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS isolated factory reset\n' >> "$GITHUB_STEP_SUMMARY"
+  printf -- '- PASS SQLite quick-check + foreign-key integrity\n' >> "$GITHUB_STEP_SUMMARY"
   printf -- '- PASS compiled server /health smoke\n' >> "$GITHUB_STEP_SUMMARY"
+  node --input-type=module - "$artifact_dir/db-integrity.json" "$GITHUB_STEP_SUMMARY" <<'NODE'
+import { appendFileSync, readFileSync } from "node:fs";
+const report = JSON.parse(readFileSync(process.argv[2], "utf8"));
+const rows = report.domains.map((domain) =>
+  `| ${domain.domain} | ${domain.ok ? "PASS" : "FAIL"} | ${domain.quickCheck.join(", ")} | ${domain.foreignKeyViolations} |`,
+);
+appendFileSync(
+  process.argv[3],
+  `\n### SQLite integrity\n\n| Domain | State | quick_check | FK violations |\n|---|---|---|---:|\n${rows.join("\n")}\n`,
+);
+NODE
 }
 echo "nightly lifecycle: ok"
