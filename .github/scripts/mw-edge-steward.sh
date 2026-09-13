@@ -126,6 +126,19 @@ check_workflow() {
   fi
 }
 
+
+check_scheduled_history() {
+  local workflow="$1" severity="$2" label="$3"
+  local json analysis state failures evidence
+  json="$(gh run list --repo "$REPO" --workflow "$workflow" --limit 8 \
+    --json status,conclusion,url,createdAt,event 2>/dev/null || echo '[]')"
+  analysis="$(printf '%s' "$json" | .github/scripts/steward-workflow-history.sh 2 2)"
+  IFS=$'\t' read -r state failures evidence <<<"$analysis"
+  if [[ "$state" == "REPEATED" ]]; then
+    add_finding "$severity" workflow "$label has repeated scheduled failures ($failures in the unrecovered window)." "$evidence"
+  fi
+}
+
 check_workflow ci.yml P0 "CI"
 check_workflow codeql.yml P0 "CodeQL"
 check_workflow scorecard.yml P0 "OpenSSF Scorecard"
@@ -135,6 +148,11 @@ check_workflow governance.yml P1 "Governance automation"
 check_workflow project-sync.yml P1 "Project synchronization"
 check_workflow workflow-security.yml P0 "Workflow security"
 check_workflow nightly.yml P1 "Nightly lifecycle"
+
+check_scheduled_history codeql.yml P0 "CodeQL"
+check_scheduled_history scorecard.yml P0 "OpenSSF Scorecard"
+check_scheduled_history workflow-security.yml P0 "Workflow security"
+check_scheduled_history nightly.yml P1 "Nightly lifecycle"
 
 # ---------------------------------------------------------------------------
 # Blocked P0/P1 issues are operational signals. This also surfaces settings or
