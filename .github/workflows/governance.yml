@@ -2,45 +2,51 @@ name: governance
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - ".github/scripts/governance.sh"
+      - ".github/workflows/governance.yml"
   issues:
-    types:
-      - opened
-      - reopened
-      - edited
+    types: [opened, edited]
   schedule:
     - cron: "11 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
-  issues: write
-  pull-requests: read
 
 concurrency:
-  group: governance-${{ github.event_name }}
+  group: governance-${{ github.event.issue.number || github.event_name }}
   cancel-in-progress: false
 
 jobs:
   govern:
-    if: github.event_name != 'schedule'
+    if: ${{ github.event_name == 'issues' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Bootstrap labels milestones and issue metadata
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Reconcile labels milestones and issue metadata
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: bash .github/scripts/governance.sh
 
   steward:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: read
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false

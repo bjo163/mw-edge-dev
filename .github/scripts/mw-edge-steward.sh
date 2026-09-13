@@ -129,11 +129,12 @@ check_workflow() {
 check_workflow ci.yml P0 "CI"
 check_workflow codeql.yml P0 "CodeQL"
 check_workflow scorecard.yml P0 "OpenSSF Scorecard"
-check_workflow version-release.yml P0 "Release automation"
 check_workflow sync-main-to-dev.yml P0 "main -> dev synchronization"
 check_workflow ensure-dev-pr.yml P1 "dev -> main PR automation"
 check_workflow governance.yml P1 "Governance automation"
 check_workflow project-sync.yml P1 "Project synchronization"
+check_workflow workflow-security.yml P0 "Workflow security"
+check_workflow nightly.yml P1 "Nightly lifecycle"
 
 # ---------------------------------------------------------------------------
 # Blocked P0/P1 issues are operational signals. This also surfaces settings or

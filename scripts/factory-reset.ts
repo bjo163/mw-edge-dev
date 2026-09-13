@@ -15,7 +15,7 @@ if (!process.stdout.isTTY && process.env.MW_ALLOW_FACTORY_RESET !== "1") {
   throw new Error("Non-interactive reset requires MW_ALLOW_FACTORY_RESET=1");
 }
 
-const dataDir = resolve(projectRoot, "data");
+const dataDir = resolve(value("--data-dir") ?? process.env.MW_DATA_DIR ?? resolve(projectRoot, "data"));
 const { manifests, ordered } = await planProfile(profile);
 const domains = [...new Set(ordered.map((id) => manifests.get(id)?.domain).filter((domain): domain is string => Boolean(domain)))];
 const backup = resolve(dataDir, "backups", new Date().toISOString().replaceAll(":", "-"));
@@ -49,6 +49,7 @@ if (env.registry.has("foundation.country")) {
 const result = {
   status: "reset-complete",
   profile,
+  data_dir: dataDir,
   domains,
   models: env.registry.list().length,
   components: env.ordered.length,
