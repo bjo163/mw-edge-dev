@@ -31,7 +31,8 @@
     "profiles": "tsx scripts/profiles.ts",
     "plugins:lock:write": "tsx scripts/plugins-lock.ts --write",
     "plugins:lock:check": "tsx scripts/plugins-lock.ts --check",
-    "docs:check": "tsx scripts/docs-check.ts"
+    "docs:check": "tsx scripts/docs-check.ts",
+    "capabilities": "tsx scripts/capabilities.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",
