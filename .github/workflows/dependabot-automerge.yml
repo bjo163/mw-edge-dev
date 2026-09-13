@@ -1,0 +1,62 @@
+name: dependabot-policy
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [dev]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: dependabot-policy-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.base.ref == 'dev' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read verified Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@ce64ab543818415476df7072e04370945165b773
+        with:
+          github-token: ${{ github.token }}
+
+      - name: Materialize verified merge policy
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          TARGET_BRANCH: ${{ steps.metadata.outputs.target-branch }}
+          MAINTAINER_CHANGES: ${{ steps.metadata.outputs.maintainer-changes }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n \
+            --argjson pr_number "$PR_NUMBER" \
+            --arg head "$EXPECTED_HEAD" \
+            --arg update_type "$UPDATE_TYPE" \
+            --arg target_branch "$TARGET_BRANCH" \
+            --arg maintainer_changes "$MAINTAINER_CHANGES" \
+            '{
+              schema_version: 1,
+              pr_number: $pr_number,
+              head: $head,
+              update_type: $update_type,
+              target_branch: $target_branch,
+              maintainer_changes: $maintainer_changes
+            }' > dependabot-policy.json
+
+      - name: Upload immutable policy evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: dependabot-policy
+          path: dependabot-policy.json
+          if-no-files-found: error
+          retention-days: 1

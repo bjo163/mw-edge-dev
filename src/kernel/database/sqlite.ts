@@ -1,4 +1,5 @@
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { SQLITE_DATABASE_CAPABILITIES } from "./adapter.js";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { DbRow } from "../types.js";
@@ -25,6 +26,9 @@ function nonNegativeInteger(value: number | undefined, fallback: number, name: s
 }
 
 export class SqliteDatabase {
+  readonly adapter_id = "sqlite";
+  readonly experimental = false;
+  readonly capabilities = SQLITE_DATABASE_CAPABILITIES;
   readonly path: string;
   readonly db: DatabaseSync;
   readonly busyTimeoutMs: number;

@@ -17,4 +17,5 @@ jobs:
           fail-on-severity: moderate
           fail-on-scopes: runtime, development
           vulnerability-check: true
+          license-check: true
           show-patched-versions: true

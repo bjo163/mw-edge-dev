@@ -3,10 +3,17 @@ import assert from "node:assert/strict";
 import { boot } from "../src/index.js";
 import { COMPONENTS } from "../src/kernel/plugins/registry.js";
 
-test("component inventory is 17 domain plugins + 9 addons", () => {
-  const values = Object.values(COMPONENTS);
-  assert.equal(values.filter((entry) => entry.kind === "domain_plugin").length, 17);
-  assert.equal(values.filter((entry) => entry.kind === "addon").length, 9);
+const productionComponents = Object.values(COMPONENTS).filter((entry) => !entry.id.startsWith("mw.example"));
+
+test("production component inventory is 18 domain plugins + 10 addons", () => {
+  assert.equal(productionComponents.filter((entry) => entry.kind === "domain_plugin").length, 17);
+  assert.equal(productionComponents.filter((entry) => entry.kind === "addon").length, 9);
+});
+
+test("example fixtures remain isolated from the production component inventory", () => {
+  const examples = Object.values(COMPONENTS).filter((entry) => entry.id.startsWith("mw.example"));
+  assert.deepEqual(examples.map((entry) => entry.id).sort(), ["mw.example", "mw.example.note"]);
+  assert.equal(examples.length, 2);
 });
 
 test("full profile registers exactly 43 models and 17 domains", async () => {
