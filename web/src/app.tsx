@@ -64,7 +64,7 @@ export function App() {
   const [route, setRoute] = useState<Route>(() => readRoute());
   const [loading, setLoading] = useState(true);
   const navigate = (path: string) => {
-    if (`${location.pathname}${location.search}` !== path) history.pushState(null, "", path);
+    if (`${location.pathname}${location.search}${location.hash}` !== path) history.pushState(null, "", path);
     setRoute(readRoute());
   };
   const load = async () => {
@@ -72,7 +72,12 @@ export function App() {
     try {
       const session = await api.session();
       setPrincipal(session.principal);
-      if (!session.principal.must_rotate_password) setMetadata(await api.metadata());
+      if (session.principal.must_rotate_password) {
+        setMetadata(undefined);
+      } else {
+        try { setMetadata(await api.metadata()); }
+        catch { setMetadata(undefined); }
+      }
     } catch {
       setPrincipal(undefined);
       setMetadata(undefined);
