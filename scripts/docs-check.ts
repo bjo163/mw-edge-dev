@@ -35,8 +35,8 @@ function anchorSlug(value: string): string {
     .trim()
     .toLowerCase()
     .replace(/<[^>]*>/g, "")
-    .replace(/[^p{L}p{N}s_-]/gu, "")
-    .replace(/s+/g, "-")
+    .replace(/[^\p{L}\p{N}\s_-]/gu, "")
+    .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 }
 
@@ -44,14 +44,13 @@ async function anchorsFor(path: string): Promise<Set<string>> {
   const text = await readFile(path, "utf8");
   const anchors = new Set<string>();
   const counts = new Map<string, number>();
-  for (const line of text.split(/?
-/)) {
-    const match = /^(#{1,6})s+(.+?)s*$/.exec(line);
+  for (const line of text.split(/\r?\n/)) {
+    const match = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
     if (!match) continue;
-    const base = anchorSlug(match[2].replace(/s+#+s*$/, ""));
+    const base = anchorSlug(match[2].replace(/\s+#+\s*$/, ""));
     const count = counts.get(base) ?? 0;
     counts.set(base, count + 1);
-    anchors.add(count === 0 ? base : `${base}-${count}`);
+    anchors.add(count === 0 ? base : base + "-" + count);
   }
   return anchors;
 }
@@ -59,19 +58,21 @@ async function anchorsFor(path: string): Promise<Set<string>> {
 for (const file of markdownFiles) {
   const text = await readFile(file, "utf8");
 
-  const linkPattern = /!?[[^]]*](([^)]+))/g;
+  const linkPattern = /!?\[[^\]]*\]\(([^)]+)\)/g;
   for (const match of text.matchAll(linkPattern)) {
     let target = match[1].trim();
     if (!target || /^(https?:|mailto:)/i.test(target)) continue;
     if (target.startsWith("<") && target.endsWith(">")) target = target.slice(1, -1);
-    target = target.split(/s+["'][^"']*["']$/)[0];
+    target = target.split(/\s+["'][^"']*["']$/)[0];
 
-    const [rawPath, fragment = ""] = target.split("#", 2);
+    const parts = target.split("#", 2);
+    const rawPath = parts[0];
+    const fragment = parts[1] ?? "";
     const decodedPath = decodeURIComponent(rawPath);
     const targetPath = decodedPath ? resolve(dirname(file), decodedPath) : file;
 
     if (!existsSync(targetPath)) {
-      errors.push(`${file.slice(root.length + 1)}: broken local link ${target}`);
+      errors.push(file.slice(root.length + 1) + ": broken local link " + target);
       continue;
     }
 
@@ -79,16 +80,27 @@ for (const file of markdownFiles) {
       const anchors = await anchorsFor(targetPath);
       const normalized = decodeURIComponent(fragment).toLowerCase();
       if (!anchors.has(normalized)) {
-        errors.push(`${file.slice(root.length + 1)}: missing anchor #${fragment} in ${decodedPath || file.slice(root.length + 1)}`);
+        errors.push(
+          file.slice(root.length + 1) +
+            ": missing anchor #" +
+            fragment +
+            " in " +
+            (decodedPath || file.slice(root.length + 1)),
+        );
       }
     }
   }
 
-  const commandPattern = /pnpm(?:s+run)?s+([A-Za-z0-9:_-]+)/g;
+  const commandPattern = /\bpnpm(?:\s+run)?\s+([A-Za-z0-9:_-]+)/g;
   for (const match of text.matchAll(commandPattern)) {
     const command = match[1];
     if (!builtins.has(command) && !scripts.has(command)) {
-      errors.push(`${file.slice(root.length + 1)}: documented pnpm script "${command}" does not exist in package.json`);
+      errors.push(
+        file.slice(root.length + 1) +
+          ': documented pnpm script "' +
+          command +
+          '" does not exist in package.json',
+      );
     }
   }
 }
@@ -98,4 +110,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`docs-check: ok (${markdownFiles.length} markdown files)`);
+console.log("docs-check: ok (" + markdownFiles.length + " markdown files)");
