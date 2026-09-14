@@ -98,6 +98,15 @@ elif [[ "$(jq 'length' <<<"$rulesets_json")" -eq 0 ]]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Plugin manifest/lock drift. The probe is read-only and emits no row while
+# healthy, so recovery automatically removes the finding from this run.
+# ---------------------------------------------------------------------------
+while IFS=$'\t' read -r severity area message evidence; do
+  [[ -n "$severity" ]] || continue
+  add_finding "$severity" "$area" "$message" "$evidence"
+done < <(bash .github/scripts/steward-plugin-lock.sh finding)
+
+# ---------------------------------------------------------------------------
 # Latest workflow health. Findings are based on completed failures; queued or
 # running jobs are reported but are not treated as failures.
 # ---------------------------------------------------------------------------
