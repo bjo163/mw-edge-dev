@@ -33,6 +33,15 @@ export class ModelRegistry {
     if (this.#models.has(model.name)) throw new Error(`Duplicate model ${model.name}`);
     if (model.domain !== model.name.split(".")[0]) throw new Error(`Domain mismatch for ${model.name}`);
     if (!AUTHORITIES.has(model.authority)) throw new Error(`Unknown authority ${model.authority} for ${model.name}`);
+    if (typeof model.component !== "string" || model.component.trim().length === 0) {
+      throw new Error(`Missing model ownership for ${model.name}`);
+    }
+    if (typeof owner !== "string" || owner.trim().length === 0) {
+      throw new Error(`Missing registration owner for ${model.name}`);
+    }
+    if (model.component !== owner) {
+      throw new Error(`Ambiguous model ownership for ${model.name}: component ${model.component} registered by ${owner}`);
+    }
 
     for (const [name, field] of Object.entries(model.fields)) {
       if (!/^[a-z][a-z0-9_]*$/.test(name)) throw new Error(`Invalid field ${model.name}.${name}`);
