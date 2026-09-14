@@ -6,6 +6,7 @@ import type { RegisteredModel, ModelRegistry } from "./model-registry.js";
 import type { DomainDatabaseRouter } from "./database/router.js";
 import type { SqliteDatabase } from "./database/sqlite.js";
 import { compileComparisonFilters, type ComparisonFilter } from "./query-filter.js";
+import { MwError } from "./errors.js";
 
 export type InputRecord = Record<string, RecordValue | undefined>;
 export type OutputRecord = Record<string, unknown>;
@@ -184,11 +185,47 @@ export class ModelStore {
     return Number(row?.count ?? 0);
   }
 
-  update(ref: string | number | bigint, patch: InputRecord): OutputRecord | undefined {
+  update(
+    ref: string | number | bigint,
+    patch: InputRecord,
+    options: { readonly expectedVersion?: number } = {},
+  ): OutputRecord | undefined {
     const values = this.validate(patch, { partial: true });
     const names = Object.keys(values);
-    if (names.length === 0) return this.get(ref);
     const selector = this.primaryRef && typeof ref === "string" ? this.primaryRef : "id";
+    const optimistic = this.model.optimistic_concurrency === true;
+
+    if (!optimistic && options.expectedVersion !== undefined) {
+      throw new Error(`Model ${this.model.name} does not enable optimistic concurrency`);
+    }
+    if (optimistic) {
+      const expectedVersion = options.expectedVersion;
+      if (!Number.isSafeInteger(expectedVersion) || Number(expectedVersion) < 1) {
+        throw new MwError(
+          "CONCURRENCY_VERSION_REQUIRED",
+          `Expected record_version is required for ${this.model.name}`,
+          409,
+        );
+      }
+      if (names.length === 0) return this.get(ref);
+      const result = this.db.run(
+        `UPDATE ${q(this.table)} SET ${names.map((name) => `${q(name)}=?`).join(",")}, updated_at=?, record_version=record_version+1 WHERE ${q(selector)}=? AND record_version=?`,
+        [...names.map((name) => values[name] ?? null), nowIso(), ref, expectedVersion],
+      );
+      if (Number(result.changes) === 0) {
+        const current = this.get(ref);
+        if (!current) return undefined;
+        throw new MwError(
+          "CONCURRENCY_CONFLICT",
+          `Stale write for ${this.model.name}`,
+          409,
+          { expected_version: expectedVersion, current_version: current.record_version },
+        );
+      }
+      return this.get(ref);
+    }
+
+    if (names.length === 0) return this.get(ref);
     this.db.run(
       `UPDATE ${q(this.table)} SET ${names.map((name) => `${q(name)}=?`).join(",")}, updated_at=? WHERE ${q(selector)}=?`,
       [...names.map((name) => values[name] ?? null), nowIso(), ref],
