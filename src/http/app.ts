@@ -8,6 +8,7 @@ import type { BootEnvironment } from "../kernel/plugins/host.js";
 import type { InputRecord, OutputRecord } from "../kernel/orm.js";
 import type { FieldDefinition, RecordValue } from "../kernel/types.js";
 import { generateSessionToken, hashPassword, tokenHash, verifyPassword } from "../standalone/auth.js";
+import { LoginRateLimiter, loginRateLimitKey, type LoginRateLimitOptions } from "../standalone/login-rate-limit.js";
 
 type AppEnv = {
   Variables: {
@@ -51,9 +52,14 @@ function parseFilterValue(field: FieldDefinition, raw: string): RecordValue {
   }
 }
 
-export function createApp(env: BootEnvironment): Hono<AppEnv> {
+export interface CreateAppOptions {
+  readonly loginRateLimit?: LoginRateLimitOptions;
+}
+
+export function createApp(env: BootEnvironment, options: CreateAppOptions = {}): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
   const standalone = env.registry.has("standalone.principal") && env.registry.has("standalone.session");
+  const loginRateLimiter = new LoginRateLimiter(options.loginRateLimit);
 
   const issueSession = (principalRef: string): string => {
     const token = generateSessionToken();
@@ -96,7 +102,7 @@ export function createApp(env: BootEnvironment): Hono<AppEnv> {
         : new MwError("INTERNAL_ERROR", process.env.NODE_ENV === "production" ? "Internal error" : error.message, 500);
     return context.json(
       { error: { code: failure.code, message: failure.message, request_id: context.get("request_id") } },
-      failure.status as 400 | 403 | 404 | 409 | 413 | 500,
+      failure.status as 400 | 403 | 404 | 409 | 413 | 429 | 500,
     );
   });
 
@@ -114,10 +120,24 @@ export function createApp(env: BootEnvironment): Hono<AppEnv> {
     if (!standalone) throw new MwError("NOT_FOUND", "Standalone login is not enabled", 404);
     if (Number(context.req.header("content-length") ?? 0) > 65536) throw new MwError("PAYLOAD_TOO_LARGE", "Request body too large", 413);
     const body = (await context.req.json()) as { username?: unknown; password?: unknown };
-    const principal = env.orm.model("standalone.principal").findOne({ filters: { username: String(body.username ?? "") } });
+    const username = String(body.username ?? "");
+    const rateKey = loginRateLimitKey(username);
+    const retryAfter = loginRateLimiter.retryAfterMs(rateKey);
+    if (retryAfter > 0) {
+      context.header("retry-after", String(Math.max(1, Math.ceil(retryAfter / 1000))));
+      throw new MwError("RATE_LIMITED", "Too many failed login attempts", 429);
+    }
+
+    const principal = env.orm.model("standalone.principal").findOne({ filters: { username } });
     if (!principal || !principal.login_enabled || !verifyPassword(String(body.password ?? ""), principal.password_hash)) {
+      const blockedFor = loginRateLimiter.recordFailure(rateKey);
+      if (blockedFor > 0) {
+        context.header("retry-after", String(Math.max(1, Math.ceil(blockedFor / 1000))));
+        throw new MwError("RATE_LIMITED", "Too many failed login attempts", 429);
+      }
       throw new MwError("ACCESS_DENIED", "Invalid credentials", 403);
     }
+    loginRateLimiter.reset(rateKey);
 
     const token = issueSession(String(principal.principal_ref));
     setCookie(context, "mw_session", token, {
