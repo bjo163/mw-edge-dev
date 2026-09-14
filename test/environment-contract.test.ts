@@ -130,3 +130,33 @@ test("documented runtime selection inputs stay tied to server boot", () => {
   assert.ok(docs.includes("`MW_DATA_DIR`"), "environment contract must classify MW_DATA_DIR");
   assert.ok(docs.includes("Overrides the persistent data directory"), "docs must describe MW_DATA_DIR semantics");
 });
+
+test("canonical environment commands remain executable package scripts", () => {
+  const pkg = JSON.parse(read("package.json")) as PackageContract;
+  const docs = read("docs/reference/environment-contract.md");
+  const canonicalScripts = [
+    "readiness",
+    "test",
+    "typecheck",
+    "ui:typecheck",
+    "build",
+    "ui:build",
+    "docs:check",
+    "db:migrate",
+    "factory:reset",
+    "db:reset",
+    "profiles",
+    "plugins:lock:check",
+  ];
+
+  for (const script of canonicalScripts) {
+    assert.ok(pkg.scripts[script], `package.json must expose canonical environment command ${script}`);
+    assert.ok(docs.includes(`pnpm ${script}`), `environment contract must document canonical command pnpm ${script}`);
+  }
+
+  assert.equal(
+    pkg.scripts.readiness,
+    "bash .github/scripts/readiness.sh",
+    "the canonical readiness command must continue delegating to the repository readiness gate",
+  );
+});
