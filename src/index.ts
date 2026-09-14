@@ -5,6 +5,8 @@ export { resourceMetadata, buildMetadata } from "./kernel/metadata.js";
 export { CommandRegistry, executeIdempotently } from "./kernel/commands.js";
 export { QueryRegistry } from "./kernel/queries.js";
 export { applySeeds, resolveSeedOrder, seedKey } from "./kernel/seeds/dependency.js";
+export { applyReferenceSeedUpgrade } from "./kernel/seeds/reference-upgrade.js";
+export type { ReferenceSeedUpgradeInput, ReferenceSeedUpgradeResult } from "./kernel/seeds/reference-upgrade.js";
 export { compileComparisonFilters } from "./kernel/query-filter.js";
 export { ReferenceResolverRegistry } from "./kernel/references.js";
 export type { ReferenceResolution, ReferenceResolveRequest, ReferenceResolveContext, ReferenceResolver } from "./kernel/references.js";
