@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT="${SCRIPT:-/tmp/steward-recovery-evidence.sh}"
+CONTROLLER="${CONTROLLER:-.github/scripts/mw-edge-steward.sh}"
 
 assert_eq() {
   local expected="$1" actual="$2" label="$3"
@@ -34,5 +35,9 @@ if printf '%s\n' "$healthy" | bash "$SCRIPT" UNKNOWN >/dev/null 2>&1; then
   echo 'FAIL invalid state accepted' >&2
   exit 1
 fi
+
+grep -F 'previous_report="$(gh issue view "$health_number"' "$CONTROLLER" >/dev/null
+grep -F 'steward-recovery-evidence.sh "$health"' "$CONTROLLER" >/dev/null
+grep -F 'echo "**Recovery:** $recovery"' "$CONTROLLER" >/dev/null
 
 echo 'PASS steward recovery evidence fixtures'
