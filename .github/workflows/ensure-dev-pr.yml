@@ -61,7 +61,17 @@ jobs:
           if ! gh pr create --repo "$REPO" --base main --head dev \
             --title "chore: sync dev into main" \
             --body "Automated integration PR for the current DEV_AHEAD state." 2>/tmp/pr.err; then
-            cat /tmp/pr.err >&2
-            echo "::error::Unable to create dev -> main PR. Verify repository Actions permissions."
+            error="$(cat /tmp/pr.err)"
+            printf '%s\n' "$error" >&2
+            if grep -q "GitHub Actions is not permitted to create or approve pull requests" <<<"$error"; then
+              echo "::warning::Repository Actions policy blocks pull-request creation; DEV_AHEAD remains valid and requires an authorized external/manual PR creator."
+              {
+                echo
+                echo "integration_pr=external_required"
+                echo "reason=repository Actions policy blocks createPullRequest"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::error::Unable to create dev -> main PR for an unexpected reason."
             exit 1
           fi
