@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.15.0 - 2026-09-14
+
+- Merge pull request #484 from bjo163/dev (e7e4d02)
+- test(steward): guard controller health wiring (7ed3b07)
+- fix(backup): satisfy sqlite row contract (86439ca)
+- test(backup): prove restore preflight is fail-closed (28c4457)
+- feat(backup): verify backup compatibility before restore (5bf6169)
+- test(backup): cover owned-domain snapshot command (211796d)
+- feat(backup): add per-domain sqlite snapshot command (6d2229c)
+- fix(web): make resource navigation deep-linkable (b70e83f)
+- test(environment): cover API bind contract (c6a8923)
+- fix(steward): sort scheduled history deterministically (1a32e29)
+- fix(web): preserve primitive class names (f663fd5)
+- test(doctor): guard secret output contract (e0d4c65)
+
+
 ## v0.14.0 - 2026-09-14
 
 - Merge pull request #476 from bjo163/dev (302699a)
