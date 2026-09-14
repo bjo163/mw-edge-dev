@@ -17,7 +17,7 @@ test("reference resolver registry bounds result size and preserves opaque refs",
   const result = await registry.resolve("tenant_scope", { search: " acme ", limit: 2 });
   assert.equal(observedLimit, 2);
   assert.deepEqual(result.map((item) => item.ref), ["tenant:001", "tenant:002"]);
-  assert.throws(() => registry.resolve("tenant_scope", { limit: 4 }), /limited|between/i);
+  await assert.rejects(registry.resolve("tenant_scope", { limit: 4 }), /limited|between/i);
 });
 
 test("reference resolvers fail closed on unknown, duplicate, oversized, and slow results", async () => {
