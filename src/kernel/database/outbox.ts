@@ -9,6 +9,11 @@ export interface DomainOutboxEntry {
   readonly created_at: string;
 }
 
+export interface DomainOutboxTransaction {
+  readonly db: SqliteDatabase;
+  enqueue(entry: DomainOutboxEntry): void;
+}
+
 export function ensureDomainOutbox(db: SqliteDatabase): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS ${DOMAIN_OUTBOX_TABLE} (
@@ -35,4 +40,19 @@ export function enqueueDomainOutbox(
      VALUES (?, ?, ?, ?)`,
     [entry.id, entry.topic, entry.payload, entry.created_at],
   );
+}
+
+export function transactionWithDomainOutbox<T>(
+  db: SqliteDatabase,
+  fn: (transaction: DomainOutboxTransaction) => T,
+): T {
+  return db.transaction((transactionDb) => {
+    ensureDomainOutbox(transactionDb);
+    return fn({
+      db: transactionDb,
+      enqueue(entry) {
+        enqueueDomainOutbox(transactionDb, entry);
+      },
+    });
+  });
 }
