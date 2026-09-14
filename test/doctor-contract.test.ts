@@ -96,3 +96,35 @@ test("doctor human output names failing checks and recovery actions", () => {
   );
   assert.doesNotMatch(result.stdout, /storage\.sqlite_integrity/);
 });
+
+test("doctor output never exposes configured secret values", () => {
+  const secret = "doctor-contract-secret-do-not-print";
+  const missingDataDir = resolve(process.cwd(), ".tmp-doctor-contract-secret-missing");
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--import",
+      "tsx",
+      "scripts/doctor.ts",
+      "--json",
+      "--profile",
+      "__doctor_contract_invalid_profile__",
+      "--data-dir",
+      missingDataDir,
+    ],
+    {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        MW_SESSION_SECRET: secret,
+        MW_BOOTSTRAP_PASSWORD: secret,
+      },
+    },
+  );
+
+  assert.equal(result.signal, null, result.stderr);
+  assert.equal(result.status, 3, result.stderr);
+  assert.doesNotMatch(result.stdout, new RegExp(secret));
+  assert.doesNotMatch(result.stderr, new RegExp(secret));
+});
