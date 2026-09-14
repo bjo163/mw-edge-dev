@@ -4,6 +4,15 @@ import type { Locale } from "../i18n/messages";
 import { Button, DataTable, EmptyState, Field, InlineError, Input, Select } from "../ui/primitives";
 import { ResourceValue } from "./value";
 
+type ReadError = {
+  readonly message: string;
+  readonly status: number | undefined;
+  readonly requestId: string | undefined;
+  readonly retryable: boolean;
+};
+
+const noReadError: ReadError = { message: "", status: undefined, requestId: undefined, retryable: false };
+
 function queryFromSearch(metadata: ResourceMetadata, search: string): ResourceQuery {
   const params = new URLSearchParams(search);
   const limitRaw = Number(params.get("limit") ?? metadata.views.list.default_page_size);
@@ -67,7 +76,7 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
   const [search, setSearch] = useState(() => location.search);
   const [data, setData] = useState<ResourceListResult>();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ReadError>(noReadError);
   const [filterField, setFilterField] = useState(metadata.views.list.filterable_fields[0] ?? "");
   const [filterValue, setFilterValue] = useState("");
   const query = useMemo(() => queryFromSearch(metadata, search), [metadata, search]);
@@ -82,10 +91,19 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
 
   const refresh = async () => {
     setLoading(true);
-    setError("");
-    try { setData(await api.list(metadata.resource_id, query)); }
-    catch (failure) { setError(failure instanceof ApiError ? failure.message : failure instanceof Error ? failure.message : "Load failed"); }
-    finally { setLoading(false); }
+    setError(noReadError);
+    try {
+      setData(await api.list(metadata.resource_id, query));
+    } catch (failure) {
+      setError({
+        message: failure instanceof Error ? failure.message : "Load failed",
+        status: failure instanceof ApiError ? failure.status : undefined,
+        requestId: failure instanceof ApiError ? failure.requestId : undefined,
+        retryable: failure instanceof ApiError && failure.retryable,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { void refresh(); }, [metadata.resource_id, search, refreshToken]);
@@ -99,6 +117,9 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
   const offset = query.offset ?? 0;
   const limit = query.limit ?? metadata.views.list.default_page_size;
   const filterDefinition = filterField ? metadata.fields[filterField] : undefined;
+  const hasError = error.message.length > 0;
+  const permissionDenied = error.status === 403;
+  const unavailable = error.status === 404;
 
   return <section className="resource-grid" aria-label={`${metadata.labels.plural} list`}>
     <div className="grid-toolbar">
@@ -125,10 +146,12 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
     </div>
 
     {activeFilters.length > 0 && <div className="active-filters" aria-label="Active filters">{activeFilters.map(([name, value]) => <Button key={name} onClick={() => setParams((params) => { params.delete(`filter.${name}`); params.set("offset", "0"); })}>{metadata.fields[name]?.label ?? name}: {String(value)} ×</Button>)}</div>}
-    {error && <InlineError><p>{error}</p><Button onClick={() => void refresh()}>Retry</Button></InlineError>}
-    {loading ? <p role="status" aria-busy="true">Loading…</p> : !error && data?.items.length === 0
+    {!loading && permissionDenied && <EmptyState title="Permission denied" description="Your account does not have permission to read this resource." />}
+    {!loading && unavailable && <EmptyState title="Resource unavailable" description="This resource is not available from the current server metadata or endpoint." />}
+    {!loading && hasError && !permissionDenied && !unavailable && <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void refresh()}>Retry</Button>}{error.requestId && <details><summary>Technical details</summary><p>Request ID: <code>{error.requestId}</code></p></details>}</InlineError>}
+    {loading ? <p role="status" aria-busy="true">Loading…</p> : !hasError && data?.items.length === 0
       ? <EmptyState title={activeFilters.length > 0 ? "No matching records" : "No data yet"} description={activeFilters.length > 0 ? "Change or clear the active filters." : metadata.labels.description} />
-      : <DataTable caption={`${metadata.labels.plural} (${data?.total ?? 0} results)`}><thead><tr>{columns.map((column) => {
+      : !hasError && <DataTable caption={`${metadata.labels.plural} (${data?.total ?? 0} results)`}><thead><tr>{columns.map((column) => {
         const sortable = metadata.views.list.sortable_fields.includes(column);
         const active = query.sort === column;
         const ariaSort = active ? (query.direction === "desc" ? "descending" : "ascending") : "none";
@@ -141,6 +164,6 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
         return <tr key={String(record ?? index)}>{columns.map((column, columnIndex) => <td key={column}>{columnIndex === 0 && record !== undefined ? <a href={`/resources/${encodeURIComponent(metadata.route_key)}/${encodeURIComponent(String(record))}`} onClick={(event) => { event.preventDefault(); onOpenRecord(record); }}><ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} /></a> : <ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} />}</td>)}</tr>;
       })}</tbody></DataTable>}
 
-    <footer className="pagination"><span>{data ? `${data.total} results` : ""}</span><div><Button disabled={offset <= 0 || loading} onClick={() => setParams((params) => params.set("offset", String(Math.max(0, offset - limit))))}>Previous</Button><Button disabled={loading || !data || offset + data.items.length >= data.total} onClick={() => setParams((params) => params.set("offset", String(offset + limit)))}>Next</Button></div></footer>
+    <footer className="pagination"><span>{data ? `${data.total} results` : ""}</span><div><Button disabled={offset <= 0 || loading || hasError} onClick={() => setParams((params) => params.set("offset", String(Math.max(0, offset - limit))))}>Previous</Button><Button disabled={loading || hasError || !data || offset + data.items.length >= data.total} onClick={() => setParams((params) => params.set("offset", String(offset + limit)))}>Next</Button></div></footer>
   </section>;
 }
