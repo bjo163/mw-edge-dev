@@ -37,12 +37,25 @@ function recordKey(metadata: ResourceMetadata, row: Record<string, unknown>): st
   return typeof value === "string" || typeof value === "number" ? value : undefined;
 }
 
-function FilterControl({ field, value, onChange }: { readonly field: ResourceFieldMetadata; readonly value: string; readonly onChange: (value: string) => void }) {
-  if (field.type === "Boolean") return <Select value={value} onChange={(event) => onChange(event.target.value)}><option value="">Any</option><option value="true">True</option><option value="false">False</option></Select>;
-  if (field.type === "Enum") return <Select value={value} onChange={(event) => onChange(event.target.value)}><option value="">Any</option>{field.enum?.map((option) => <option key={option} value={option}>{option}</option>)}</Select>;
-  if (field.type === "Integer" || field.type === "Decimal") return <Input type="number" step={field.type === "Integer" ? 1 : "any"} value={value} onChange={(event) => onChange(event.target.value)} />;
-  if (field.type === "DateTime") return <Input type="datetime-local" value={value} onChange={(event) => onChange(event.target.value)} />;
-  return <Input type="text" value={value} onChange={(event) => onChange(event.target.value)} />;
+function FilterControl({
+  field,
+  value,
+  onChange,
+  id,
+  describedBy,
+}: {
+  readonly field: ResourceFieldMetadata;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly id: string;
+  readonly describedBy: string | undefined;
+}) {
+  const common = { id, "aria-describedby": describedBy };
+  if (field.type === "Boolean") return <Select {...common} value={value} onChange={(event) => onChange(event.target.value)}><option value="">Any</option><option value="true">True</option><option value="false">False</option></Select>;
+  if (field.type === "Enum") return <Select {...common} value={value} onChange={(event) => onChange(event.target.value)}><option value="">Any</option>{field.enum?.map((option) => <option key={option} value={option}>{option}</option>)}</Select>;
+  if (field.type === "Integer" || field.type === "Decimal") return <Input {...common} type="number" step={field.type === "Integer" ? 1 : "any"} value={value} onChange={(event) => onChange(event.target.value)} />;
+  if (field.type === "DateTime") return <Input {...common} type="datetime-local" value={value} onChange={(event) => onChange(event.target.value)} />;
+  return <Input {...common} type="text" value={value} onChange={(event) => onChange(event.target.value)} />;
 }
 
 export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 }: {
@@ -101,7 +114,7 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
         setFilterValue("");
       }}>
         <Field label="Filter field">{({ id, describedBy }) => <Select id={id} aria-describedby={describedBy} value={filterField} onChange={(event) => { setFilterField(event.target.value); setFilterValue(""); }}>{metadata.views.list.filterable_fields.map((name) => <option key={name} value={name}>{metadata.fields[name]?.label ?? name}</option>)}</Select>}</Field>
-        {filterDefinition && <Field label="Filter value">{({ id, describedBy }) => <span id={id} aria-describedby={describedBy}><FilterControl field={filterDefinition} value={filterValue} onChange={setFilterValue} /></span>}</Field>}
+        {filterDefinition && <Field label="Filter value">{({ id, describedBy }) => <FilterControl id={id} describedBy={describedBy} field={filterDefinition} value={filterValue} onChange={setFilterValue} />}</Field>}
         <Button type="submit">Apply filter</Button>
       </form>}
       <details className="column-picker"><summary>Columns</summary>{metadata.views.list.columns.map((name) => <label key={name}><input type="checkbox" checked={columns.includes(name)} onChange={(event) => setParams((params) => {
@@ -125,7 +138,7 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
         })}>{metadata.fields[column]?.label ?? column}{active ? (query.direction === "desc" ? " ↓" : " ↑") : " ↕"}</Button> : (metadata.fields[column]?.label ?? column)}</th>;
       })}</tr></thead><tbody>{data?.items.map((row, index) => {
         const record = recordKey(metadata, row);
-        return <tr key={String(record ?? index)}>{columns.map((column, columnIndex) => <td key={column}>{columnIndex === 0 && record !== undefined ? <a href={`/resources/${encodeURIComponent(metadata.route_key)}/${encodeURIComponent(String(record))}`} onClick={(event) => { event.preventDefault(); onOpenRecord(record); }}><ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} /></a> : <ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} />}</td>)}</tr>;
+        return <tr key={String(record ?? index)}>{columns.map((column, columnIndex) => <td key={column}>{columnIndex === 0 && record !== undefined ? <a href={`/resources/${encodeURIComponent(metadata.route_key)}/${encodeURIComponent(String(record))}`} onClick={(event) => { event.preventDefault(); onOpenRecord(record); }}><ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} /></a> : <ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} />}</td>)}</tr>;
       })}</tbody></DataTable>}
 
     <footer className="pagination"><span>{data ? `${data.total} results` : ""}</span><div><Button disabled={offset <= 0 || loading} onClick={() => setParams((params) => params.set("offset", String(Math.max(0, offset - limit))))}>Previous</Button><Button disabled={loading || !data || offset + data.items.length >= data.total} onClick={() => setParams((params) => params.set("offset", String(offset + limit)))}>Next</Button></div></footer>
