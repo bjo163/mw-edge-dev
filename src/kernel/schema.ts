@@ -85,6 +85,15 @@ export function createIndexSql(model: RegisteredModel, index: ModelIndexDefiniti
   return `CREATE INDEX IF NOT EXISTS ${q(ownedIndexName(model, index))} ON ${q(tableFor(model))} (${fields.join(",")})`;
 }
 
+export function validateModelIndexes(model: RegisteredModel): void {
+  const ids = new Set<string>();
+  for (const index of model.indexes ?? []) {
+    if (ids.has(index.id)) throw new Error(`Duplicate index id ${model.name}.${index.id}`);
+    ids.add(index.id);
+    createIndexSql(model, index);
+  }
+}
+
 export function ensureMetaTables(db: SqliteDatabase): void {
   db.exec(`CREATE TABLE IF NOT EXISTS mw_migrations (
     component_id TEXT NOT NULL,
@@ -113,6 +122,7 @@ export function materializeComponent(input: {
 }): { readonly changed: boolean; readonly checksum: string } {
   const { db, manifest, models, registry } = input;
   ensureMetaTables(db);
+  for (const model of models) validateModelIndexes(model);
   const checksum = sha256({ manifest: { id: manifest.id, version: manifest.version }, models });
   const existing = db.get<{ checksum: string }>(
     "SELECT checksum FROM mw_migrations WHERE component_id=? AND migration_id=?",
