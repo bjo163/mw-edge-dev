@@ -61,3 +61,23 @@ test("documented runtime security inputs stay tied to production behavior", () =
   assert.ok(docs.includes("`MW_COOKIE_SECURE`"), "environment contract must classify MW_COOKIE_SECURE");
   assert.ok(docs.includes("Set to `1` to mark the session cookie `Secure`"), "docs must describe MW_COOKIE_SECURE semantics");
 });
+
+test("documented API bind inputs stay tied to server defaults", () => {
+  const server = read("src/server.ts");
+  const docs = read("docs/reference/environment-contract.md");
+
+  assert.match(
+    server,
+    /const port = Number\(process\.env\.MW_EDGE_PORT \?\? 8788\)/,
+    "server API port must remain explicitly environment-controlled",
+  );
+  assert.match(
+    server,
+    /const hostname = process\.env\.MW_EDGE_HOST \?\? "127\.0\.0\.1"/,
+    "server API hostname must remain explicitly environment-controlled",
+  );
+  assert.ok(docs.includes("`MW_EDGE_PORT`"), "environment contract must classify MW_EDGE_PORT");
+  assert.ok(docs.includes("server defaults to `8788`"), "docs must describe MW_EDGE_PORT default");
+  assert.ok(docs.includes("`MW_EDGE_HOST`"), "environment contract must classify MW_EDGE_HOST");
+  assert.ok(docs.includes("server defaults to `127.0.0.1`"), "docs must describe MW_EDGE_HOST default");
+});
