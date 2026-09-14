@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "id": "example-base",
+  "description": "Executable minimal plugin profile without the optional note addon",
+  "components": [
+    "mw.example"
+  ]
+}
