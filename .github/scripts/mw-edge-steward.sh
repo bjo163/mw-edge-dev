@@ -27,9 +27,6 @@ branch_exists() {
   git ls-remote --exit-code --heads origin "$1" >/dev/null 2>&1
 }
 
-# ---------------------------------------------------------------------------
-# Branch topology: main/dev are the only persistent human development refs.
-# ---------------------------------------------------------------------------
 branch_state="UNKNOWN"
 main_sha="missing"
 dev_sha="missing"
@@ -62,9 +59,6 @@ if [[ -n "$unexpected_branches" ]]; then
   add_finding P1 branch "Unexpected persistent branch(es) detected outside the main/dev policy." "$(echo "$unexpected_branches" | paste -sd ', ' -)"
 fi
 
-# ---------------------------------------------------------------------------
-# Integration PR invariant.
-# ---------------------------------------------------------------------------
 pr_json="$(gh pr list --repo "$REPO" --state open --base main --head dev --limit 20 --json number,url,title 2>/dev/null || echo '[]')"
 pr_count="$(jq 'length' <<<"$pr_json")"
 pr_url="$(jq -r '.[0].url // ""' <<<"$pr_json")"
@@ -87,9 +81,6 @@ case "$branch_state" in
     ;;
 esac
 
-# ---------------------------------------------------------------------------
-# Repository rulesets. If the token cannot verify them, report visibility loss.
-# ---------------------------------------------------------------------------
 rulesets_json="$(gh api "repos/$REPO/rulesets" 2>/dev/null || true)"
 if [[ -z "$rulesets_json" ]]; then
   add_finding P1 policy "Steward cannot verify repository rulesets with the current token."
@@ -97,19 +88,11 @@ elif [[ "$(jq 'length' <<<"$rulesets_json")" -eq 0 ]]; then
   add_finding P0 policy "No repository ruleset is active; main/dev protection is not enforced."
 fi
 
-# ---------------------------------------------------------------------------
-# Plugin manifest/lock drift. The probe is read-only and emits no row while
-# healthy, so recovery automatically removes the finding from this run.
-# ---------------------------------------------------------------------------
 while IFS=$'\t' read -r severity area message evidence; do
   [[ -n "$severity" ]] || continue
   add_finding "$severity" "$area" "$message" "$evidence"
 done < <(bash .github/scripts/steward-plugin-lock.sh finding)
 
-# ---------------------------------------------------------------------------
-# Latest workflow health. Findings are based on completed failures; queued or
-# running jobs are reported but are not treated as failures.
-# ---------------------------------------------------------------------------
 check_workflow() {
   local workflow="$1" severity="$2" label="$3"
   local json status conclusion url created head event
@@ -134,7 +117,6 @@ check_workflow() {
     add_finding "$severity" workflow "$label latest run concluded $conclusion." "$url ($created)"
   fi
 }
-
 
 check_scheduled_history() {
   local workflow="$1" severity="$2" label="$3"
@@ -163,10 +145,6 @@ check_scheduled_history scorecard.yml P0 "OpenSSF Scorecard"
 check_scheduled_history workflow-security.yml P0 "Workflow security"
 check_scheduled_history nightly.yml P1 "Nightly lifecycle"
 
-# ---------------------------------------------------------------------------
-# Blocked P0/P1 issues are operational signals. This also surfaces settings or
-# secrets that cannot be introspected directly (for example PROJECT_TOKEN).
-# ---------------------------------------------------------------------------
 issues_json="$(gh issue list --repo "$REPO" --state open --limit 300 --json number,title,url,labels 2>/dev/null || echo '[]')"
 while IFS=$'\t' read -r number priority title url; do
   [[ -n "$number" ]] || continue
@@ -184,7 +162,6 @@ done < <(jq -r '
   | @tsv
 ' <<<"$issues_json")
 
-# Dependabot backlog signal: do not mutate or merge PRs here.
 now_epoch="$(date -u +%s)"
 stale_dependabot=0
 while IFS=$'\t' read -r created url; do
@@ -198,8 +175,6 @@ if (( stale_dependabot > 0 )); then
   add_finding P1 dependency "$stale_dependabot Dependabot PR(s) have been open for at least 7 days."
 fi
 
-# Dependabot mandatory-check failures are reported through this same canonical
-# health issue; never open a duplicate dependency-health issue.
 while IFS=$'\t' read -r number head url; do
   [[ -n "$number" && -n "$head" ]] || continue
   checks_json="$(gh api "repos/$REPO/commits/$head/check-runs" 2>/dev/null || echo '{"check_runs":[]}')"
@@ -215,9 +190,22 @@ done < <(gh pr list --repo "$REPO" --state open --base dev --limit 200 \
   --json number,author,headRefOid,url \
   --jq '.[] | select(.author.login == "dependabot[bot]") | [.number,.headRefOid,.url] | @tsv' 2>/dev/null || true)
 
-# ---------------------------------------------------------------------------
-# Compose deterministic report.
-# ---------------------------------------------------------------------------
+health_issues_raw="$(gh api --paginate "repos/$REPO/issues?state=all&per_page=100" 2>/dev/null || true)"
+health_number=""
+health_resolution_state="UNKNOWN"
+health_duplicates=""
+
+if [[ -z "$health_issues_raw" ]]; then
+  add_finding P1 policy "Steward cannot resolve the canonical automation-health issue with the current token."
+else
+  health_issues_json="$(printf '%s\n' "$health_issues_raw" | jq -s 'add // []')"
+  health_resolution="$(printf '%s' "$health_issues_json" | .github/scripts/steward-health-issue-resolver.sh "$HEALTH_TITLE")"
+  IFS=$'\t' read -r health_resolution_state health_number _health_state health_count health_duplicates <<<"$health_resolution"
+  if [[ "$health_resolution_state" == "DUPLICATE" ]]; then
+    add_finding P1 governance "Multiple canonical automation-health issues exist; Steward will update only the oldest issue." "count=$health_count issues=$health_duplicates canonical=#$health_number"
+  fi
+fi
+
 p0="$(awk -F '\t' '$1=="P0"{n++} END{print n+0}' "$FINDINGS")"
 p1="$(awk -F '\t' '$1=="P1"{n++} END{print n+0}' "$FINDINGS")"
 total="$((p0 + p1))"
@@ -288,33 +276,32 @@ run_url="${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-$REPO}/ac
 cat "$REPORT"
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"; fi
 
-# ---------------------------------------------------------------------------
-# Upsert exactly one canonical health issue and close/reopen it with health.
-# ---------------------------------------------------------------------------
-health_number="$(gh api --paginate "repos/$REPO/issues?state=all&per_page=100" --jq ".[] | select(has(\"pull_request\")|not) | select(.title == \"$HEALTH_TITLE\") | .number" 2>/dev/null | head -n1 || true)"
-if [[ -z "$health_number" ]]; then
-  health_url="$(gh issue create --repo "$REPO" --title "$HEALTH_TITLE" --body-file "$REPORT")"
-  health_number="${health_url##*/}"
-fi
-
-gh issue edit "$health_number" --repo "$REPO" --body-file "$REPORT" >/dev/null
-# Labels are best-effort so a governance outage cannot prevent health reporting.
-gh issue edit "$health_number" --repo "$REPO" --add-label "area:ops,type:task" >/dev/null 2>&1 || true
-gh issue edit "$health_number" --repo "$REPO" --remove-label "priority:P0,priority:P1" >/dev/null 2>&1 || true
-if [[ "$p0" -gt 0 ]]; then
-  gh issue edit "$health_number" --repo "$REPO" --add-label "priority:P0" >/dev/null 2>&1 || true
-elif [[ "$p1" -gt 0 ]]; then
-  gh issue edit "$health_number" --repo "$REPO" --add-label "priority:P1" >/dev/null 2>&1 || true
-fi
-
-issue_state="$(gh issue view "$health_number" --repo "$REPO" --json state --jq '.state')"
-if [[ "$total" -gt 0 ]]; then
-  if [[ "$issue_state" != "OPEN" ]]; then gh issue reopen "$health_number" --repo "$REPO" >/dev/null; fi
+if [[ "$health_resolution_state" == "UNKNOWN" ]]; then
+  echo "Steward skipped health-issue mutation because canonical issue visibility is unavailable." >&2
 else
-  if [[ "$issue_state" == "OPEN" ]]; then gh issue close "$health_number" --repo "$REPO" --reason completed >/dev/null; fi
+  if [[ "$health_resolution_state" == "NONE" ]]; then
+    health_url="$(gh issue create --repo "$REPO" --title "$HEALTH_TITLE" --body-file "$REPORT")"
+    health_number="${health_url##*/}"
+  fi
+
+  gh issue edit "$health_number" --repo "$REPO" --body-file "$REPORT" >/dev/null
+  gh issue edit "$health_number" --repo "$REPO" --add-label "area:ops,type:task" >/dev/null 2>&1 || true
+  gh issue edit "$health_number" --repo "$REPO" --remove-label "priority:P0,priority:P1" >/dev/null 2>&1 || true
+  if [[ "$p0" -gt 0 ]]; then
+    gh issue edit "$health_number" --repo "$REPO" --add-label "priority:P0" >/dev/null 2>&1 || true
+  elif [[ "$p1" -gt 0 ]]; then
+    gh issue edit "$health_number" --repo "$REPO" --add-label "priority:P1" >/dev/null 2>&1 || true
+  fi
+
+  issue_state="$(gh issue view "$health_number" --repo "$REPO" --json state --jq '.state')"
+  if [[ "$total" -gt 0 ]]; then
+    if [[ "$issue_state" != "OPEN" ]]; then gh issue reopen "$health_number" --repo "$REPO" >/dev/null; fi
+  else
+    if [[ "$issue_state" == "OPEN" ]]; then gh issue close "$health_number" --repo "$REPO" --reason completed >/dev/null; fi
+  fi
 fi
 
-echo "Steward state=$health issue=#$health_number findings=$total"
+echo "Steward state=$health issue=${health_number:+#$health_number} findings=$total"
 
 if [[ "$FAIL_ON_FINDINGS" == "true" && "$total" -gt 0 ]]; then
   exit 1
