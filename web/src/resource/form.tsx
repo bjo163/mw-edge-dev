@@ -39,7 +39,7 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
 }) {
   const [draft, setDraft] = useState<Draft>({});
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [submitError, setSubmitError] = useState("");
+  const [submitError, setSubmitError] = useState<{ readonly message: string; readonly requestId: string | undefined }>({ message: "", requestId: undefined });
   const [submitting, setSubmitting] = useState(false);
 
   if (!metadata.crud.create) return null;
@@ -48,7 +48,7 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
     event.preventDefault();
     const serialized = serializeResourceForm(metadata, draft);
     setFieldErrors(serialized.errors);
-    setSubmitError("");
+    setSubmitError({ message: "", requestId: undefined });
     if (Object.keys(serialized.errors).length > 0) return;
     setSubmitting(true);
     try {
@@ -56,12 +56,16 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
       setDraft({});
       await onCreated();
     } catch (failure) {
-      setSubmitError(failure instanceof ApiError ? failure.message : failure instanceof Error ? failure.message : "Create failed");
+      setSubmitError({
+        message: failure instanceof Error ? failure.message : "Create failed",
+        requestId: failure instanceof ApiError ? failure.requestId : undefined,
+      });
     } finally {
       setSubmitting(false);
     }
   }}>
-    <ErrorSummary errors={[...Object.values(fieldErrors), ...(submitError ? [submitError] : [])]} />
+    <ErrorSummary errors={[...Object.values(fieldErrors), ...(submitError.message ? [submitError.message] : [])]} />
+    {submitError.requestId && <details className="error-details"><summary>{message(locale, "state.technicalDetails")}</summary><dl><div><dt>{message(locale, "state.requestId")}</dt><dd><code>{submitError.requestId}</code></dd></div></dl></details>}
     {metadata.views.form.sections.map((section) => <fieldset key={section.id}><legend>{section.label}</legend><div className="grid">{section.fields.map((name) => {
       const field = metadata.fields[name];
       if (!field || field.read_only || field.generated) return null;
