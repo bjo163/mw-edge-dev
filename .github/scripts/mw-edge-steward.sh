@@ -93,6 +93,11 @@ while IFS=$'\t' read -r severity area message evidence; do
   add_finding "$severity" "$area" "$message" "$evidence"
 done < <(bash .github/scripts/steward-plugin-lock.sh finding)
 
+while IFS=$'\t' read -r severity area message evidence; do
+  [[ -n "$severity" ]] || continue
+  add_finding "$severity" "$area" "$message" "$evidence"
+done < <(bash .github/scripts/steward-governance-drift.sh finding)
+
 check_workflow() {
   local workflow="$1" severity="$2" label="$3"
   local json status conclusion url created head event

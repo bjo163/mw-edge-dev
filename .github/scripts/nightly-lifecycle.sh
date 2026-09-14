@@ -31,7 +31,7 @@ echo "==> backup/restore disaster-recovery drill"
 pnpm exec tsx scripts/dr-drill.ts | tee "$artifact_dir/dr-drill.json"
 
 echo "==> production performance baseline"
-pnpm exec tsx scripts/perf-baseline.ts | tee "$artifact_dir/perf-baseline.json"
+pnpm exec tsx scripts/performance-baseline.ts | tee "$artifact_dir/perf-baseline.json"
 
 echo "==> SQLite soak"
 pnpm exec tsx scripts/sqlite-soak.ts | tee "$artifact_dir/sqlite-soak.json"

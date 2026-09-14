@@ -56,13 +56,23 @@ Plugin host implementation objects, lifecycle mutation internals, registry map s
 
 ## V1 freeze status
 
-The V1 freeze is **not complete** at this inventory revision. No entry in `schemas/public-contracts.json` is classified `stable`; current supported surfaces remain `beta`, and the D1 adapter remains `experimental`.
+The V1 **extension-contract freeze is complete** for the following catalog entries:
 
-The original #122 blocker around missing command/query contracts has been reduced: the typed `DomainCommand`, command registry, and query registry work tracked by #3, #4, and #5 is now complete and represented by `commands.v1` and `queries.v1` in the catalog. Their current status is still `beta`, so their presence is evidence for freeze review, not evidence that the V1 promise has already been made.
+- `commands.v1`
+- `queries.v1`
+- `plugin-manifest.v1`
+- `addon-manifest.v1`
+- `extension-registry.v1`
+- `resource-metadata.v1`
+- `sqlite-adapter.v1`
 
-The unresolved database-adapter risk remains #95. The catalog deliberately keeps `d1-adapter.experimental` outside the V1 compatibility promise while SQLite remains the beta adapter surface. Closing or changing #95 must not silently promote D1: promotion requires an explicit catalog stability change, corresponding tests/documentation, and compatibility review.
+These entries are classified `stable` in `schemas/public-contracts.json`. At V1 and later, an incompatible change to any of them requires the major-version policy in [compatibility.md](compatibility.md), except for the documented security exception.
 
-A release may claim the V1 extension-contract freeze only when all contracts intended for the V1 promise have been reviewed and explicitly promoted to `stable`, the exact catalog revision is recorded as release evidence, and unresolved experimental/internal surfaces are clearly excluded. After that point, the [compatibility policy](compatibility.md) requires breaking changes to stable contracts to use a major release (subject only to the documented security exception).
+The freeze is intentionally scoped. HTTP routes, profiles, migrations, seeds, operator/runtime environment contracts remain `beta` until separately promoted. Cloudflare D1 remains `experimental`, requires explicit opt-in/binding, and is excluded from the V1 compatibility promise. Internal implementation details remain outside the public contract.
+
+The previous #122 blockers are resolved: typed command/query contracts are implemented and tested, and the database adapter capability seam is explicit. #95 records the D1 adapter boundary and remains excluded from the stable set rather than weakening SQLite semantics.
+
+The machine-auditable authority remains `schemas/public-contracts.json`; `test/contracts.test.ts` pins the exact frozen set so accidental demotion/promotion fails CI.
 
 ## Gaps before V1 freeze
 
