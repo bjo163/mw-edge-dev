@@ -55,6 +55,20 @@ export function createApp(env: BootEnvironment): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
   const standalone = env.registry.has("standalone.principal") && env.registry.has("standalone.session");
 
+  const issueSession = (principalRef: string): string => {
+    const token = generateSessionToken();
+    const created = new Date();
+    const expires = new Date(created.getTime() + 12 * 60 * 60 * 1000);
+    env.orm.model("standalone.session").create({
+      session_ref: randomUUID(),
+      principal_ref: principalRef,
+      token_hash: tokenHash(token),
+      created_at: created.toISOString(),
+      expires_at: expires.toISOString(),
+    });
+    return token;
+  };
+
   const authenticate = (token: string | undefined): AppEnv["Variables"]["auth"] | undefined => {
     if (!standalone || !token) return undefined;
     const session = env.orm.model("standalone.session").findOne({ filters: { token_hash: tokenHash(token) } });
@@ -105,16 +119,7 @@ export function createApp(env: BootEnvironment): Hono<AppEnv> {
       throw new MwError("ACCESS_DENIED", "Invalid credentials", 403);
     }
 
-    const token = generateSessionToken();
-    const created = new Date();
-    const expires = new Date(created.getTime() + 12 * 60 * 60 * 1000);
-    env.orm.model("standalone.session").create({
-      session_ref: randomUUID(),
-      principal_ref: String(principal.principal_ref),
-      token_hash: tokenHash(token),
-      created_at: created.toISOString(),
-      expires_at: expires.toISOString(),
-    });
+    const token = issueSession(String(principal.principal_ref));
     setCookie(context, "mw_session", token, {
       httpOnly: true,
       sameSite: "Strict",
@@ -143,11 +148,23 @@ export function createApp(env: BootEnvironment): Hono<AppEnv> {
     return context.json({ principal: publicRecord(env, "standalone.principal", principal) });
   });
   app.post("/api/auth/change-password", requireAdmin, async (context) => {
-    const { principal } = context.get("auth");
+    const { principal, session } = context.get("auth");
     const body = (await context.req.json()) as { password?: unknown };
-    env.orm.model("standalone.principal").update(String(principal.principal_ref), {
-      password_hash: hashPassword(String(body.password ?? "")),
-      must_rotate_password: false,
+    let rotatedToken = "";
+    env.orm.atomic("standalone", () => {
+      env.orm.model("standalone.principal").update(String(principal.principal_ref), {
+        password_hash: hashPassword(String(body.password ?? "")),
+        must_rotate_password: false,
+      });
+      env.orm.model("standalone.session").update(String(session.session_ref), { revoked_at: new Date().toISOString() });
+      rotatedToken = issueSession(String(principal.principal_ref));
+    });
+    setCookie(context, "mw_session", rotatedToken, {
+      httpOnly: true,
+      sameSite: "Strict",
+      secure: process.env.MW_COOKIE_SECURE === "1",
+      path: "/",
+      maxAge: 12 * 60 * 60,
     });
     const credentialFile = resolve(process.cwd(), "data/.bootstrap/admin-credentials.json");
     if (existsSync(credentialFile)) {
