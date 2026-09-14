@@ -14,8 +14,8 @@ export function Button({ type = "button", ...props }: ButtonProps) {
   return <button type={type} {...props} />;
 }
 
-export function IconButton({ type = "button", ...props }: Omit<ButtonProps, "aria-label"> & { readonly "aria-label": string }) {
-  return <button type={type} className={`icon-button ${props.className ?? ""}`.trim()} {...props} />;
+export function IconButton({ type = "button", className, ...props }: Omit<ButtonProps, "aria-label"> & { readonly "aria-label": string }) {
+  return <button type={type} className={`icon-button ${className ?? ""}`.trim()} {...props} />;
 }
 
 export function Field({
@@ -55,8 +55,8 @@ export function Panel({ title, children }: { readonly title?: string; readonly c
   return <section className="panel" aria-labelledby={title ? id : undefined}>{title && <h2 id={id}>{title}</h2>}{children}</section>;
 }
 
-export function Drawer({ summary, children, ...props }: DetailsHTMLAttributes<HTMLDetailsElement> & { readonly summary: ReactNode }) {
-  return <details className={`drawer panel ${props.className ?? ""}`.trim()} {...props}><summary>{summary}</summary><div className="drawer-body">{children}</div></details>;
+export function Drawer({ summary, children, className, ...props }: DetailsHTMLAttributes<HTMLDetailsElement> & { readonly summary: ReactNode }) {
+  return <details className={`drawer panel ${className ?? ""}`.trim()} {...props}><summary>{summary}</summary><div className="drawer-body">{children}</div></details>;
 }
 
 export function DataTable({ caption, children, ...props }: TableHTMLAttributes<HTMLTableElement> & { readonly caption: string }) {

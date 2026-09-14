@@ -38,8 +38,10 @@ while IFS=$'\t' read -r status conclusion url created; do
       ;;
   esac
 done < <(jq -r '
-  .[]
-  | select(.event == "schedule")
+  [.[] | select(.event == "schedule")]
+  | sort_by(.createdAt // "")
+  | reverse
+  | .[]
   | [.status, (.conclusion // "pending"), (.url // ""), (.createdAt // "")]
   | @tsv
 ')
