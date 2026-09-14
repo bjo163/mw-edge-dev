@@ -1,19 +1,37 @@
-# Production performance baseline
+# Production load baseline
 
-MW Edge treats performance evidence as a regression budget, not a throughput claim. Results are meaningful only with the exact revision, Node version, runner class, profile, and thresholds recorded alongside them.
+Issue #118 uses a repeatable regression baseline rather than a throughput marketing number.
 
-## Baseline workloads
+## Workloads
 
-[scripts/perf-baseline.ts](../../scripts/perf-baseline.ts) measures three representative paths against the standalone profile:
+`scripts/performance-baseline.ts` exercises four repository-owned paths on the pinned Node/pnpm toolchain:
 
-- cold in-memory runtime/profile startup;
-- 1,000 full metadata field scans, representing metadata-driven UI preparation; and
-- 100 ORM writes followed by primary-reference reads.
+- full-profile boot plus metadata materialization and serialization;
+- 200 ORM create/read operations plus a bounded sorted page query;
+- 500 command and 500 query registrations followed by deterministic lookup/list operations;
+- 5,000 typed UI presentation-format operations using the production presentation layer.
 
-The default regression budgets are 5,000 ms startup, 500 ms metadata scan, and 3,000 ms ORM write/read. They are intentionally broad enough for shared CI runners but narrow enough to catch order-of-magnitude regressions. CI may override them with the documented `MW_PERF_*_MAX_MS` environment variables when a stable runner class has a tighter historical baseline.
+UI bundling remains separately enforced by the canonical `pnpm ui:build` readiness gate.
 
-A run exits nonzero when any budget is exceeded and emits structured JSON with methodology, metrics, thresholds, and individual checks.
+## Regression envelopes
 
-## Interpretation
+| Workload | Ceiling |
+|---|---:|
+| full boot + metadata | 5,000 ms |
+| ORM mixed workload | 3,000 ms |
+| command/query registry workload | 1,000 ms |
+| UI presentation workload | 2,000 ms |
 
-Do not compare raw requests-per-second from different machines. A threshold change requires a recorded reason and a new evidence run; raising a threshold only to make a failing build green is not acceptable production evidence.
+These are GitHub-runner portability ceilings, not capacity or throughput claims. Lower is better. Loosening a threshold requires reviewed evidence rather than changing a number only to make CI green.
+
+## Reproduce and evidence
+
+```bash
+pnpm exec tsx scripts/performance-baseline.ts
+```
+
+Canonical readiness runs the same command and retains its structured JSON in the exact-SHA Actions log.
+
+## Residual risks
+
+This local baseline does not model deployment-specific disk, network, reverse proxy, browser paint, or multi-user contention. It detects large regressions in repository-owned boot, metadata, ORM, registry, and UI formatting paths; it is not a capacity-planning substitute.

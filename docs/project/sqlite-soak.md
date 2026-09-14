@@ -1,15 +1,38 @@
-# SQLite soak evidence
+# SQLite sustained soak
 
-[scripts/sqlite-soak.ts](../../scripts/sqlite-soak.ts) runs a sustained mixed read/write workload against a file-backed SQLite database using MW Edge's WAL and checkpoint policy.
+Issue #119 verifies that the supported local SQLite path remains healthy under sustained mixed reads and writes.
 
-The default soak window is 120 seconds. Each iteration commits related parent/child writes, performs read-after-write validation, samples WAL size and RSS, and periodically performs a passive checkpoint. At the end it requires:
+## Method
 
-- `PRAGMA quick_check` to return `ok`;
-- zero foreign-key violations;
-- a non-busy truncating checkpoint;
-- WAL growth to remain within 32 MiB; and
-- process RSS growth to remain within 96 MiB.
+`scripts/sqlite-soak.ts` uses a file-backed WAL database and repeatedly updates a fixed 256-row parent/child working set inside transactions. Every iteration performs read-after-write verification and periodic passive checkpoints.
 
-The limits are regression guards, not capacity claims. The duration and budgets can be changed through `MW_SQLITE_SOAK_SECONDS`, `MW_SQLITE_SOAK_MAX_WAL_BYTES`, and `MW_SQLITE_SOAK_MAX_RSS_GROWTH_BYTES`, but production evidence must record the exact values used.
+The final gate requires:
 
-A short test is not equivalent to the production soak window; retained scheduled/manual evidence should use the default or a longer duration.
+- `PRAGMA quick_check` = `ok`;
+- zero `PRAGMA foreign_key_check` violations;
+- a non-busy final TRUNCATE checkpoint;
+- maximum WAL <= 32 MiB and <= 1 MiB after TRUNCATE;
+- database file <= 16 MiB for the fixed working set;
+- RSS growth <= 128 MiB.
+
+The fixed working set separates journal/database leakage from legitimate application data growth.
+
+## Reproduce and evidence
+
+The default release/operator window is two minutes:
+
+```bash
+pnpm exec tsx scripts/sqlite-soak.ts
+```
+
+Longer evidence can be requested with `MW_SQLITE_SOAK_SECONDS=600`. Canonical readiness executes the exact same checks with a five-second regression window:
+
+```bash
+MW_SQLITE_SOAK_SECONDS=5 pnpm exec tsx scripts/sqlite-soak.ts
+```
+
+Nightly lifecycle uses the default long window and retains the JSON report as an artifact.
+
+## Residual risks
+
+The soak cannot simulate sudden power loss, failing storage hardware, or every filesystem cache policy. Backup/restore disaster-recovery evidence remains the recovery control for those failures.
