@@ -47,7 +47,7 @@ export function ResourceDetail({ metadata, record, locale, onBack }: {
     <div id="details" className="record-sections">{metadata.views.detail.sections.map((section) => <section key={section.id} className="panel record-section"><h2>{section.label}</h2><dl>{section.fields.map((name) => {
       const field = metadata.fields[name];
       if (!field) return null;
-      return <div key={name} className="fact-row"><dt>{field.label}</dt><dd><ResourceValue field={field} value={item[name]} locale={locale} /></dd></div>;
+      return <div key={name} className="fact-row"><dt>{field.label}</dt><dd><ResourceValue field={field} value={item[name]} locale={locale} record={item} /></dd></div>;
     })}</dl></section>)}</div>
 
     <details id="expert" className="panel expert"><summary>Expert context</summary><dl><div><dt>Resource</dt><dd><code>{metadata.resource_id}</code></dd></div><div><dt>Domain</dt><dd>{metadata.domain}</dd></div><div><dt>Authority</dt><dd>{metadata.authority}</dd></div><div><dt>Owner component</dt><dd><code>{metadata.owner_component}</code></dd></div><div><dt>Metadata</dt><dd>v{metadata.metadata_version}</dd></div></dl></details>
