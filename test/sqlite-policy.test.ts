@@ -64,3 +64,23 @@ test("sqlite concurrent writers fail within configured busy timeout and recover"
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("sqlite rejects nested transactions and rolls the outer transaction back", () => {
+  const db = new SqliteDatabase(":memory:");
+  try {
+    db.exec("CREATE TABLE nested (id INTEGER PRIMARY KEY, value TEXT NOT NULL)");
+    assert.throws(
+      () => db.transaction(() => {
+        db.run("INSERT INTO nested(value) VALUES (?)", ["outer"]);
+        db.transaction(() => db.run("INSERT INTO nested(value) VALUES (?)", ["inner"]));
+      }),
+      /nested sqlite transactions are not supported/i,
+    );
+    assert.equal(Number(db.get<{ count: number }>("SELECT COUNT(*) AS count FROM nested")?.count ?? 0), 0);
+
+    db.transaction(() => db.run("INSERT INTO nested(value) VALUES (?)", ["after-error"]));
+    assert.equal(Number(db.get<{ count: number }>("SELECT COUNT(*) AS count FROM nested")?.count ?? 0), 1);
+  } finally {
+    db.close();
+  }
+});

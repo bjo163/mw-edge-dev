@@ -51,6 +51,7 @@ The following variables are runtime inputs discovered in the current codebase. V
 | `MW_PROFILE` | optional | Selects runtime profile. Server/migration paths default to `standalone-business`; some maintenance commands define their own documented default. |
 | `MW_DATA_DIR` | optional | Overrides the persistent data directory. Use a dedicated temporary/test directory for isolated verification. |
 | `MW_BOOTSTRAP_ADMIN_PASSWORD` | sensitive optional input | Supplies the standalone bootstrap administrator password. Never commit a real value. When deterministic login behavior is under test, tests must set an explicit test-only value. |
+| `MW_COOKIE_SECURE` | optional security input | Set to `1` to mark the session cookie `Secure`; otherwise the current HTTP layer leaves that flag disabled. Deployment configuration must set it explicitly when HTTPS-only cookie transport is required. |
 | `MW_EDGE_UI_PORT` | optional | Overrides the Vite UI port; default is `5173`. |
 | `NODE_ENV` | optional platform input | Controls production-safe error exposure in the HTTP layer. |
 | `MW_SQLITE_SOAK_SECONDS` | verification tuning | Controls SQLite soak duration; default is `120` seconds. |

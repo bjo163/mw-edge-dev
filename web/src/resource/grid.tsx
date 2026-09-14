@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApiError, api, type ResourceFieldMetadata, type ResourceListResult, type ResourceMetadata, type ResourceQuery } from "../api";
 import type { Locale } from "../i18n/messages";
+import { recordPath } from "../routing";
 import { Button, DataTable, EmptyState, Field, InlineError, Input, Select } from "../ui/primitives";
 import { ResourceValue } from "./value";
 
@@ -161,7 +162,7 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
         })}>{metadata.fields[column]?.label ?? column}{active ? (query.direction === "desc" ? " ↓" : " ↑") : " ↕"}</Button> : (metadata.fields[column]?.label ?? column)}</th>;
       })}</tr></thead><tbody>{data?.items.map((row, index) => {
         const record = recordKey(metadata, row);
-        return <tr key={String(record ?? index)}>{columns.map((column, columnIndex) => <td key={column}>{columnIndex === 0 && record !== undefined ? <a href={`/resources/${encodeURIComponent(metadata.route_key)}/${encodeURIComponent(String(record))}`} onClick={(event) => { event.preventDefault(); onOpenRecord(record); }}><ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} /></a> : <ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} />}</td>)}</tr>;
+        return <tr key={String(record ?? index)}>{columns.map((column, columnIndex) => <td key={column}>{columnIndex === 0 && record !== undefined ? <a href={`${recordPath(metadata.route_key, record)}${search}`} onClick={(event) => { event.preventDefault(); onOpenRecord(record); }}><ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} /></a> : <ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} />}</td>)}</tr>;
       })}</tbody></DataTable>}
 
     <footer className="pagination"><span>{data ? `${data.total} results` : ""}</span><div><Button disabled={offset <= 0 || loading || hasError} onClick={() => setParams((params) => params.set("offset", String(Math.max(0, offset - limit))))}>Previous</Button><Button disabled={loading || hasError || !data || offset + data.items.length >= data.total} onClick={() => setParams((params) => params.set("offset", String(offset + limit)))}>Next</Button></div></footer>

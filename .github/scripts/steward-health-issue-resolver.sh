@@ -12,11 +12,17 @@ jq -r --arg title "$health_title" '
   ]
   | sort_by(.number)
   | if length == 0 then
-      ["NONE", "", "", "0"]
+      ["NONE", "", "", "0", ""]
     elif length == 1 then
-      ["ONE", (.[0].number | tostring), .[0].state, "1"]
+      ["ONE", (.[0].number | tostring), .[0].state, "1", ""]
     else
-      ["DUPLICATE", (.[0].number | tostring), .[0].state, (length | tostring)]
+      [
+        "DUPLICATE",
+        (.[0].number | tostring),
+        .[0].state,
+        (length | tostring),
+        (map(.number | tostring) | join(","))
+      ]
     end
   | @tsv
 '

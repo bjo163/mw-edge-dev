@@ -14,7 +14,7 @@ assert_eq() {
 }
 
 none="$(printf '%s' '[]' | "$RESOLVER")"
-assert_eq $'NONE\t\t\t0' "$none" "no canonical issue"
+assert_eq $'NONE\t\t\t0\t' "$none" "no canonical issue"
 
 one="$(cat <<'JSON' | "$RESOLVER"
 [
@@ -24,7 +24,7 @@ one="$(cat <<'JSON' | "$RESOLVER"
 ]
 JSON
 )"
-assert_eq $'ONE\t418\topen\t1' "$one" "one canonical issue ignores PRs"
+assert_eq $'ONE\t418\topen\t1\t' "$one" "one canonical issue ignores PRs"
 
 duplicate="$(cat <<'JSON' | "$RESOLVER"
 [
@@ -34,7 +34,7 @@ duplicate="$(cat <<'JSON' | "$RESOLVER"
 ]
 JSON
 )"
-assert_eq $'DUPLICATE\t418\topen\t2' "$duplicate" "duplicates select oldest issue deterministically"
+assert_eq $'DUPLICATE\t418\topen\t2\t418,422' "$duplicate" "duplicates select oldest and expose deterministic evidence"
 
 custom="$(printf '%s' '[{"number":7,"state":"open","title":"custom health"}]' | "$RESOLVER" 'custom health')"
-assert_eq $'ONE\t7\topen\t1' "$custom" "custom canonical title"
+assert_eq $'ONE\t7\topen\t1\t' "$custom" "custom canonical title"
