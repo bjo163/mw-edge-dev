@@ -66,7 +66,7 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
       setSubmitting(false);
     }
   }}>
-    <ErrorSummary errors={[...Object.values(fieldErrors), ...(submitError.message ? [submitError.message] : [])]} />
+    <ErrorSummary title={message(locale, "resource.validationSummary")} errors={[...Object.values(fieldErrors), ...(submitError.message ? [submitError.message] : [])]} />
     {submitError.requestId && <details className="error-details"><summary>{message(locale, "state.technicalDetails")}</summary><dl><div><dt>{message(locale, "state.requestId")}</dt><dd><code>{submitError.requestId}</code></dd></div></dl></details>}
     {metadata.views.form.sections.map((section) => <fieldset key={section.id}><legend>{section.label}</legend><div className="grid">{section.fields.map((name) => {
       const field = metadata.fields[name];
