@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
+import { ApiError, api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
 import { message, resolveLocale, type Locale } from "./i18n/messages";
 import { ResourceDetail } from "./resource/detail";
 import { ResourceCreateForm } from "./resource/form";
@@ -40,11 +40,18 @@ function ResourceWorkbench({ locale, metadata, onOpenRecord }: {
   return <section className="resource-workbench"><header className="resource-head"><div><div className="eyebrow">{metadata.domain}</div><h1>{metadata.labels.plural}</h1><p>{metadata.labels.description}</p></div><StatusBadge label="Authority">{metadata.authority}</StatusBadge></header><ResourceCreateForm metadata={metadata} locale={locale} onCreated={() => setRefreshToken((value) => value + 1)} /><ResourceGrid metadata={metadata} locale={locale} onOpenRecord={onOpenRecord} refreshToken={refreshToken} /></section>;
 }
 
+type ShellReadError = {
+  readonly message: string;
+  readonly requestId: string | undefined;
+  readonly retryable: boolean;
+};
+
 export function App() {
   const [principal, setPrincipal] = useState<Principal>();
   const [metadata, setMetadata] = useState<AppMetadata>();
   const [route, setRoute] = useState<Route>(() => readRoute(location.pathname));
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<ShellReadError>();
   const contentRef = useRef<HTMLElement>(null);
   const locale = resolveLocale(undefined);
   const navigate = (path: string) => {
@@ -53,13 +60,26 @@ export function App() {
   };
   const load = async () => {
     setLoading(true);
+    setLoadError(undefined);
     try {
       const session = await api.session();
       setPrincipal(session.principal);
-      if (!session.principal.must_rotate_password) setMetadata(await api.metadata());
-    } catch {
-      setPrincipal(undefined);
-      setMetadata(undefined);
+      if (session.principal.must_rotate_password) {
+        setMetadata(undefined);
+        return;
+      }
+      setMetadata(await api.metadata());
+    } catch (failure) {
+      if (failure instanceof ApiError && failure.status === 401) {
+        setPrincipal(undefined);
+        setMetadata(undefined);
+      } else {
+        setLoadError({
+          message: failure instanceof Error ? failure.message : "Load failed",
+          requestId: failure instanceof ApiError ? failure.requestId : undefined,
+          retryable: failure instanceof ApiError ? failure.retryable : true,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -72,13 +92,14 @@ export function App() {
     return () => removeEventListener("popstate", onPopState);
   }, []);
   useEffect(() => {
-    if (loading || !principal || principal.must_rotate_password) return;
+    if (loading || loadError || !principal || principal.must_rotate_password) return;
     contentRef.current?.focus({ preventScroll: true });
-  }, [loading, principal, route]);
+  }, [loading, loadError, principal, route]);
 
   const resourceId = route.kind === "resource" || route.kind === "record" ? route.resourceId : undefined;
   const resource = useMemo(() => resourceId ? metadata?.resources.find((item) => item.resource_id === resourceId || item.route_key === resourceId) : undefined, [metadata, resourceId]);
   if (loading) return <LoadingState />;
+  if (loadError) return <main className="center"><section className="panel login"><InlineError><p>{loadError.message}</p>{loadError.retryable && <Button onClick={() => void load()}>{message(locale, "action.retry")}</Button>}{loadError.requestId && <details><summary>{message(locale, "state.technicalDetails")}</summary><p>{message(locale, "state.requestId")}: <code>{loadError.requestId}</code></p></details>}</InlineError></section></main>;
   if (!principal) return <Login locale={locale} onLogin={load} />;
   if (principal.must_rotate_password) return <Rotate locale={locale} onDone={load} />;
 
