@@ -162,3 +162,40 @@ test("doctor does not mutate the inspected data directory on invalid configurati
     rmSync(dataDir, { recursive: true, force: true });
   }
 });
+
+test("doctor classifies missing plugin lock as invalid configuration", () => {
+  const isolatedCwd = mkdtempSync(join(tmpdir(), "mw-edge-doctor-plugin-lock-"));
+  const doctorScript = resolve(process.cwd(), "scripts/doctor.ts");
+  const missingDataDir = join(isolatedCwd, "missing-data");
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        doctorScript,
+        "--json",
+        "--profile",
+        "__doctor_contract_invalid_profile__",
+        "--data-dir",
+        missingDataDir,
+      ],
+      { cwd: isolatedCwd, encoding: "utf8" },
+    );
+
+    assert.equal(result.signal, null, result.stderr);
+    assert.equal(result.status, 3, result.stderr);
+
+    const report = JSON.parse(result.stdout) as DoctorReport;
+    const pluginLock = report.checks.find((check) => check.id === "configuration.plugin_lock");
+    assert.deepEqual(pluginLock?.ok, false);
+    assert.equal(pluginLock?.failure, "invalid_configuration");
+    assert.equal(
+      pluginLock?.recovery,
+      "Run pnpm plugins:lock:write and review the resulting lock diff before startup.",
+    );
+  } finally {
+    rmSync(isolatedCwd, { recursive: true, force: true });
+  }
+});
