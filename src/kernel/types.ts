@@ -43,6 +43,7 @@ export interface ModelDefinition {
   readonly domain: string;
   readonly component: string;
   readonly authority: ModelAuthority;
+  readonly optimistic_concurrency?: boolean;
   readonly fields: Readonly<Record<string, FieldDefinition>>;
   readonly indexes?: readonly ModelIndexDefinition[];
 }
