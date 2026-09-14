@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApiError, api, type ResourceFieldMetadata, type ResourceListResult, type ResourceMetadata, type ResourceQuery } from "../api";
-import type { Locale } from "../i18n/messages";
+import { message, type Locale } from "../i18n/messages";
 import { recordPath } from "../routing";
 import { Button, DataTable, EmptyState, Field, InlineError, Input, Select } from "../ui/primitives";
 import { ResourceValue } from "./value";
@@ -13,6 +13,11 @@ type ReadError = {
 };
 
 const noReadError: ReadError = { message: "", status: undefined, requestId: undefined, retryable: false };
+
+function RequestEvidence({ locale, requestId }: { readonly locale: Locale; readonly requestId: string | undefined }) {
+  if (!requestId) return null;
+  return <details><summary>{message(locale, "state.technicalDetails")}</summary><p>{message(locale, "state.requestId")}: <code>{requestId}</code></p></details>;
+}
 
 function queryFromSearch(metadata: ResourceMetadata, search: string): ResourceQuery {
   const params = new URLSearchParams(search);
@@ -147,9 +152,9 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
     </div>
 
     {activeFilters.length > 0 && <div className="active-filters" aria-label="Active filters">{activeFilters.map(([name, value]) => <Button key={name} onClick={() => setParams((params) => { params.delete(`filter.${name}`); params.set("offset", "0"); })}>{metadata.fields[name]?.label ?? name}: {String(value)} ×</Button>)}</div>}
-    {!loading && permissionDenied && <EmptyState title="Permission denied" description="Your account does not have permission to read this resource." />}
-    {!loading && unavailable && <EmptyState title="Resource unavailable" description="This resource is not available from the current server metadata or endpoint." />}
-    {!loading && hasError && !permissionDenied && !unavailable && <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void refresh()}>Retry</Button>}{error.requestId && <details><summary>Technical details</summary><p>Request ID: <code>{error.requestId}</code></p></details>}</InlineError>}
+    {!loading && permissionDenied && <EmptyState title="Permission denied" description="Your account does not have permission to read this resource." action={<RequestEvidence locale={locale} requestId={error.requestId} />} />}
+    {!loading && unavailable && <EmptyState title="Resource unavailable" description="This resource is not available from the current server metadata or endpoint." action={<RequestEvidence locale={locale} requestId={error.requestId} />} />}
+    {!loading && hasError && !permissionDenied && !unavailable && <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void refresh()}>{message(locale, "action.retry")}</Button>}<RequestEvidence locale={locale} requestId={error.requestId} /></InlineError>}
     {loading ? <p role="status" aria-busy="true">Loading…</p> : !hasError && data?.items.length === 0
       ? <EmptyState title={activeFilters.length > 0 ? "No matching records" : "No data yet"} description={activeFilters.length > 0 ? "Change or clear the active filters." : metadata.labels.description} />
       : !hasError && <DataTable caption={`${metadata.labels.plural} (${data?.total ?? 0} results)`}><thead><tr>{columns.map((column) => {
