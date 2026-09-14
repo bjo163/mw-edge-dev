@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.11.0 - 2026-09-14
+
+- Merge pull request #431 from bjo163/dev (c9cac01)
+- test(steward): guard canonical health issue resolution (71c5b12)
+- feat(db): add domain-local transactional outbox (f937c37)
+- fix(web): preserve safe read failure evidence (f50a605)
+- docs(environment): avoid false script references (c93486a)
+- feat(web): harden reload-safe route contract (fda527f)
+- fix(web): preserve URL context across resource navigation (1e86ce2)
+- docs(environment): define reproducible runtime contract (47604ba)
+- ci: degrade gracefully when Actions cannot create PRs (d4bda95)
+- test(ui): prove fail-closed registry and currency-aware formats (6114fbb)
+- feat(ui): provide currency context to detail renderers (b5927ea)
+- fix(ui): bind filter labels and row currency context (730f9b8)
+- feat(ui): render money with record-bound currency metadata (af6e428)
+- feat(web): validate renderer metadata and consume money bindings (85f282c)
+- feat(metadata): bind money fields to explicit currency references (2abe195)
+- feat(metadata): add explicit money format currency binding (84fe634)
+- feat(ui): add fail-closed metadata renderer registry (72adee4)
+
+
 ## v0.10.0 - 2026-09-14
 
 - Merge dev into main: metadata workbench v2 (145d069)
