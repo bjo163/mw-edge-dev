@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 interface DoctorCheck {
   readonly id: string;
@@ -127,4 +129,36 @@ test("doctor output never exposes configured secret values", () => {
   assert.equal(result.status, 3, result.stderr);
   assert.doesNotMatch(result.stdout, new RegExp(secret));
   assert.doesNotMatch(result.stderr, new RegExp(secret));
+});
+
+test("doctor does not mutate the inspected data directory on invalid configuration", () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "mw-edge-doctor-readonly-"));
+  const markerPath = join(dataDir, "operator-owned-marker.txt");
+  const marker = "must remain byte-for-byte unchanged\n";
+  writeFileSync(markerPath, marker, "utf8");
+  const beforeEntries = readdirSync(dataDir).sort();
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        "scripts/doctor.ts",
+        "--json",
+        "--profile",
+        "__doctor_contract_invalid_profile__",
+        "--data-dir",
+        dataDir,
+      ],
+      { cwd: process.cwd(), encoding: "utf8" },
+    );
+
+    assert.equal(result.signal, null, result.stderr);
+    assert.equal(result.status, 3, result.stderr);
+    assert.deepEqual(readdirSync(dataDir).sort(), beforeEntries);
+    assert.equal(readFileSync(markerPath, "utf8"), marker);
+  } finally {
+    rmSync(dataDir, { recursive: true, force: true });
+  }
 });
