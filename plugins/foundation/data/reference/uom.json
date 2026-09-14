@@ -1,0 +1,10 @@
+[
+  { "uom_ref": "uom.each", "code": "EA", "name": "Each", "symbol": "ea", "category": "count", "active": true },
+  { "uom_ref": "uom.hour", "code": "HUR", "name": "Hour", "symbol": "h", "category": "time", "active": true },
+  { "uom_ref": "uom.day", "code": "DAY", "name": "Day", "symbol": "d", "category": "time", "active": true },
+  { "uom_ref": "uom.meter", "code": "MTR", "name": "Meter", "symbol": "m", "category": "length", "active": true },
+  { "uom_ref": "uom.kilometer", "code": "KMT", "name": "Kilometer", "symbol": "km", "category": "length", "active": true },
+  { "uom_ref": "uom.gram", "code": "GRM", "name": "Gram", "symbol": "g", "category": "mass", "active": true },
+  { "uom_ref": "uom.kilogram", "code": "KGM", "name": "Kilogram", "symbol": "kg", "category": "mass", "active": true },
+  { "uom_ref": "uom.liter", "code": "LTR", "name": "Liter", "symbol": "L", "category": "volume", "active": true }
+]

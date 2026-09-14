@@ -55,19 +55,21 @@ function recordKey(metadata: ResourceMetadata, row: Record<string, unknown>): st
 function FilterControl({
   field,
   value,
+  locale,
   onChange,
   id,
   describedBy,
 }: {
   readonly field: ResourceFieldMetadata;
   readonly value: string;
+  readonly locale: Locale;
   readonly onChange: (value: string) => void;
   readonly id: string;
   readonly describedBy: string | undefined;
 }) {
   const common = { id, "aria-describedby": describedBy };
-  if (field.type === "Boolean") return <Select {...common} value={value} onChange={(event) => onChange(event.target.value)}><option value="">Any</option><option value="true">True</option><option value="false">False</option></Select>;
-  if (field.type === "Enum") return <Select {...common} value={value} onChange={(event) => onChange(event.target.value)}><option value="">Any</option>{field.enum?.map((option) => <option key={option} value={option}>{option}</option>)}</Select>;
+  if (field.type === "Boolean") return <Select {...common} value={value} onChange={(event) => onChange(event.target.value)}><option value="">{message(locale, "resource.filter.any")}</option><option value="true">{message(locale, "resource.filter.true")}</option><option value="false">{message(locale, "resource.filter.false")}</option></Select>;
+  if (field.type === "Enum") return <Select {...common} value={value} onChange={(event) => onChange(event.target.value)}><option value="">{message(locale, "resource.filter.any")}</option>{field.enum?.map((option) => <option key={option} value={option}>{option}</option>)}</Select>;
   if (field.type === "Integer" || field.type === "Decimal") return <Input {...common} type="number" step={field.type === "Integer" ? 1 : "any"} value={value} onChange={(event) => onChange(event.target.value)} />;
   if (field.type === "DateTime") return <Input {...common} type="datetime-local" value={value} onChange={(event) => onChange(event.target.value)} />;
   return <Input {...common} type="text" value={value} onChange={(event) => onChange(event.target.value)} />;
@@ -140,24 +142,24 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
         setParams((params) => { params.set(`filter.${filterField}`, value); params.set("offset", "0"); });
         setFilterValue("");
       }}>
-        <Field label="Filter field">{({ id, describedBy }) => <Select id={id} aria-describedby={describedBy} value={filterField} onChange={(event) => { setFilterField(event.target.value); setFilterValue(""); }}>{metadata.views.list.filterable_fields.map((name) => <option key={name} value={name}>{metadata.fields[name]?.label ?? name}</option>)}</Select>}</Field>
-        {filterDefinition && <Field label="Filter value">{({ id, describedBy }) => <FilterControl id={id} describedBy={describedBy} field={filterDefinition} value={filterValue} onChange={setFilterValue} />}</Field>}
-        <Button type="submit">Apply filter</Button>
+        <Field label={message(locale, "resource.filter.field")}>{({ id, describedBy }) => <Select id={id} aria-describedby={describedBy} value={filterField} onChange={(event) => { setFilterField(event.target.value); setFilterValue(""); }}>{metadata.views.list.filterable_fields.map((name) => <option key={name} value={name}>{metadata.fields[name]?.label ?? name}</option>)}</Select>}</Field>
+        {filterDefinition && <Field label={message(locale, "resource.filter.value")}>{({ id, describedBy }) => <FilterControl id={id} describedBy={describedBy} field={filterDefinition} value={filterValue} locale={locale} onChange={setFilterValue} />}</Field>}
+        <Button type="submit">{message(locale, "resource.filter.apply")}</Button>
       </form>}
-      <details className="column-picker"><summary>Columns</summary>{metadata.views.list.columns.map((name) => <label key={name}><input type="checkbox" checked={columns.includes(name)} onChange={(event) => setParams((params) => {
+      <details className="column-picker"><summary>{message(locale, "resource.columns")}</summary>{metadata.views.list.columns.map((name) => <label key={name}><input type="checkbox" checked={columns.includes(name)} onChange={(event) => setParams((params) => {
         const next = event.target.checked ? [...columns, name] : columns.filter((column) => column !== name);
         const safe = next.length > 0 ? next : [metadata.views.list.columns[0] ?? name];
         if (safe.join(",") === metadata.views.list.columns.join(",")) params.delete("columns"); else params.set("columns", safe.join(","));
       })} />{metadata.fields[name]?.label ?? name}</label>)}</details>
     </div>
 
-    {activeFilters.length > 0 && <div className="active-filters" aria-label="Active filters">{activeFilters.map(([name, value]) => <Button key={name} onClick={() => setParams((params) => { params.delete(`filter.${name}`); params.set("offset", "0"); })}>{metadata.fields[name]?.label ?? name}: {String(value)} ×</Button>)}</div>}
-    {!loading && permissionDenied && <EmptyState title="Permission denied" description="Your account does not have permission to read this resource." action={<RequestEvidence locale={locale} requestId={error.requestId} />} />}
-    {!loading && unavailable && <EmptyState title="Resource unavailable" description="This resource is not available from the current server metadata or endpoint." action={<RequestEvidence locale={locale} requestId={error.requestId} />} />}
+    {activeFilters.length > 0 && <div className="active-filters" aria-label={message(locale, "resource.filters.active")}>{activeFilters.map(([name, value]) => <Button key={name} onClick={() => setParams((params) => { params.delete(`filter.${name}`); params.set("offset", "0"); })}>{metadata.fields[name]?.label ?? name}: {String(value)} ×</Button>)}</div>}
+    {!loading && permissionDenied && <EmptyState title={message(locale, "state.permissionDenied.title")} description={message(locale, "state.permissionDenied.description")} action={<RequestEvidence locale={locale} requestId={error.requestId} />} />}
+    {!loading && unavailable && <EmptyState title={message(locale, "state.unavailable.title")} description={message(locale, "state.unavailable.description")} action={<RequestEvidence locale={locale} requestId={error.requestId} />} />}
     {!loading && hasError && !permissionDenied && !unavailable && <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void refresh()}>{message(locale, "action.retry")}</Button>}<RequestEvidence locale={locale} requestId={error.requestId} /></InlineError>}
-    {loading ? <p role="status" aria-busy="true">Loading…</p> : !hasError && data?.items.length === 0
-      ? <EmptyState title={activeFilters.length > 0 ? "No matching records" : "No data yet"} description={activeFilters.length > 0 ? "Change or clear the active filters." : metadata.labels.description} />
-      : !hasError && <DataTable caption={`${metadata.labels.plural} (${data?.total ?? 0} results)`}><thead><tr>{columns.map((column) => {
+    {loading ? <p role="status" aria-busy="true">{message(locale, "app.loading")}</p> : !hasError && data?.items.length === 0
+      ? <EmptyState title={activeFilters.length > 0 ? message(locale, "state.filteredEmpty.title") : message(locale, "state.empty")} description={activeFilters.length > 0 ? message(locale, "state.filteredEmpty.description") : metadata.labels.description} />
+      : !hasError && <DataTable caption={`${metadata.labels.plural} (${data?.total ?? 0} ${message(locale, "resource.results")})`}><thead><tr>{columns.map((column) => {
         const sortable = metadata.views.list.sortable_fields.includes(column);
         const active = query.sort === column;
         const ariaSort = active ? (query.direction === "desc" ? "descending" : "ascending") : "none";
@@ -170,6 +172,6 @@ export function ResourceGrid({ metadata, locale, onOpenRecord, refreshToken = 0 
         return <tr key={String(record ?? index)}>{columns.map((column, columnIndex) => <td key={column}>{columnIndex === 0 && record !== undefined ? <a href={`${recordPath(metadata.route_key, record)}${search}`} onClick={(event) => { event.preventDefault(); onOpenRecord(record); }}><ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} /></a> : <ResourceValue field={metadata.fields[column]} value={row[column]} locale={locale} record={row} />}</td>)}</tr>;
       })}</tbody></DataTable>}
 
-    <footer className="pagination"><span>{data ? `${data.total} results` : ""}</span><div><Button disabled={offset <= 0 || loading || hasError} onClick={() => setParams((params) => params.set("offset", String(Math.max(0, offset - limit))))}>Previous</Button><Button disabled={loading || hasError || !data || offset + data.items.length >= data.total} onClick={() => setParams((params) => params.set("offset", String(offset + limit)))}>Next</Button></div></footer>
+    <footer className="pagination"><span>{data ? `${data.total} ${message(locale, "resource.results")}` : ""}</span><div><Button disabled={offset <= 0 || loading || hasError} onClick={() => setParams((params) => params.set("offset", String(Math.max(0, offset - limit))))}>{message(locale, "action.previous")}</Button><Button disabled={loading || hasError || !data || offset + data.items.length >= data.total} onClick={() => setParams((params) => params.set("offset", String(offset + limit)))}>{message(locale, "action.next")}</Button></div></footer>
   </section>;
 }

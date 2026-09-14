@@ -11,7 +11,8 @@
     "foundation.currency",
     "foundation.language",
     "foundation.timezone",
-    "foundation.locale"
+    "foundation.locale",
+    "foundation.uom"
   ],
   "requires": [],
   "database": {

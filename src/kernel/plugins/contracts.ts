@@ -5,10 +5,22 @@ export function validateComponentContracts(
   ordered: readonly string[],
 ): void {
   const active = new Set(ordered);
+  const exclusiveOwners = new Map<string, string>();
 
   for (const id of ordered) {
     const manifest = manifests.get(id);
     if (!manifest) throw new Error(`Missing manifest ${id}`);
+
+    if (manifest.database.ownership === "exclusive_domain_owner") {
+      const ownershipKey = `${manifest.domain}:${manifest.database.logical_name}`;
+      const existing = exclusiveOwners.get(ownershipKey);
+      if (existing && existing !== manifest.id) {
+        throw new Error(
+          `Incompatible component ownership for ${ownershipKey}: ${existing} and ${manifest.id} both claim exclusive ownership`,
+        );
+      }
+      exclusiveOwners.set(ownershipKey, manifest.id);
+    }
 
     for (const dependency of manifest.requires) {
       if (!active.has(dependency)) throw new Error(`Unresolved dependency ${manifest.id} -> ${dependency}`);
