@@ -33,8 +33,26 @@ function widgetFor(field: FieldDefinition): UiWidgetKey {
   }
 }
 
-function formatFor(name: string, field: FieldDefinition): UiFormatKey {
+function isCurrencyReference(field: FieldDefinition | undefined): boolean {
+  return field?.type === "Reference" && field.ref_kind?.includes("foundation.currency") === true;
+}
+
+function currencyFieldFor(
+  name: string,
+  field: FieldDefinition,
+  fields: Readonly<Record<string, FieldDefinition>>,
+): string | null {
+  if (field.type !== "Integer" && field.type !== "Decimal") return null;
+  const direct = `${name}_currency`;
+  if (isCurrencyReference(fields[direct])) return direct;
+  const monetaryName = /(^|_)(amount|price|cost|total|subtotal|balance|fee|tax|discount|commission|revenue|expense)(_|$)/.test(name);
+  if (monetaryName && isCurrencyReference(fields.currency)) return "currency";
+  return null;
+}
+
+function formatFor(name: string, field: FieldDefinition, currencyField: string | null): UiFormatKey {
   if (name === "status" || name === "lifecycle") return "status";
+  if (currencyField) return "money";
   switch (field.type) {
     case "Integer":
     case "Decimal": return "number";
@@ -47,17 +65,24 @@ function formatFor(name: string, field: FieldDefinition): UiFormatKey {
   }
 }
 
-function uiField(name: string, field: FieldDefinition, readonlyResource: boolean): ResourceFieldMetadata {
+function uiField(
+  name: string,
+  field: FieldDefinition,
+  allFields: Readonly<Record<string, FieldDefinition>>,
+  readonlyResource: boolean,
+): ResourceFieldMetadata {
   const generated = name === "id" || name === "created_at" || name === "updated_at";
   const sortable = !["Json", "Relation", "Text"].includes(field.type);
   const filterable = !["Json", "Relation", "Text"].includes(field.type);
+  const currencyField = currencyFieldFor(name, field, allFields);
   return {
     ...field,
     label: titleize(name),
     help: null,
     placeholder: null,
     widget: widgetFor(field),
-    format: formatFor(name, field),
+    format: formatFor(name, field, currencyField),
+    currency_field: currencyField,
     read_only: readonlyResource || generated || field.type === "Relation" || field.type === "Json",
     generated,
     sortable,
@@ -78,7 +103,7 @@ export function resourceMetadata(model: RegisteredModel): ResourceMetadata {
 
   const publicFields: Record<string, ResourceFieldMetadata> = {};
   for (const [name, field] of fields) {
-    if (!sensitive.includes(name)) publicFields[name] = uiField(name, field, readonlyResource);
+    if (!sensitive.includes(name)) publicFields[name] = uiField(name, field, model.fields, readonlyResource);
   }
 
   const primaryField = ["display_name", "name", "title", recordKey, ...visible]
