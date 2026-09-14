@@ -33,6 +33,7 @@ export class SqliteDatabase {
   readonly db: DatabaseSync;
   readonly busyTimeoutMs: number;
   readonly walAutoCheckpointPages: number;
+  #transactionActive = false;
 
   constructor(path: string, options: SqliteDatabaseOptions = {}) {
     if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
@@ -82,8 +83,13 @@ export class SqliteDatabase {
   }
 
   transaction<T>(fn: (db: SqliteDatabase) => T): T {
-    this.db.exec("BEGIN IMMEDIATE");
+    if (this.#transactionActive) {
+      throw new Error("Nested SQLite transactions are not supported; compose work inside the existing transaction boundary");
+    }
+
+    this.#transactionActive = true;
     try {
+      this.db.exec("BEGIN IMMEDIATE");
       const result = fn(this);
       if (result instanceof Promise) throw new Error("SQLite transaction callback must be synchronous in v0.1");
       this.db.exec("COMMIT");
@@ -95,6 +101,8 @@ export class SqliteDatabase {
         // Preserve the original transaction error.
       }
       throw error;
+    } finally {
+      this.#transactionActive = false;
     }
   }
 
