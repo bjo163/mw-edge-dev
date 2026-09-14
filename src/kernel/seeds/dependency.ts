@@ -1,4 +1,4 @@
-import type { SeedInput } from "./runner.js";
+import { applySeed, type SeedInput } from "./runner.js";
 
 export interface SeedPlan extends SeedInput {
   readonly dependsOn?: readonly string[];
@@ -47,4 +47,8 @@ export function resolveSeedOrder<T extends SeedPlan>(seeds: readonly T[]): reado
 
   for (const key of [...byKey.keys()].sort()) visit(key, []);
   return ordered;
+}
+
+export function applySeeds(seeds: readonly SeedPlan[]): readonly { readonly key: string; readonly applied: boolean; readonly checksum: string }[] {
+  return resolveSeedOrder(seeds).map((seed) => ({ key: seedKey(seed), ...applySeed(seed) }));
 }
