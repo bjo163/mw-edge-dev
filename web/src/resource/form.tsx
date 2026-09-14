@@ -4,12 +4,13 @@ import { message, type Locale } from "../i18n/messages";
 import { Button, ErrorSummary, Field, Input, Select } from "../ui/primitives";
 import { serializeResourceForm, type Draft, type FieldErrors } from "./form-serialization";
 
-function FieldControl({ field, value, onChange, id, describedBy }: {
+function FieldControl({ field, value, onChange, id, describedBy, locale }: {
   readonly field: ResourceFieldMetadata;
   readonly value: unknown;
   readonly onChange: (value: unknown) => void;
   readonly id: string;
   readonly describedBy: string | undefined;
+  readonly locale: Locale;
 }) {
   const common = { id, "aria-describedby": describedBy, required: field.required };
   switch (field.widget) {
@@ -20,7 +21,7 @@ function FieldControl({ field, value, onChange, id, describedBy }: {
     case "datetime":
       return <Input {...common} type="datetime-local" value={String(value ?? "")} onChange={(event) => onChange(event.target.value)} />;
     case "select":
-      return <Select {...common} value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}><option value="">Select…</option>{field.enum?.map((option) => <option key={option} value={option}>{option}</option>)}</Select>;
+      return <Select {...common} value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}><option value="">{message(locale, "resource.selectOption")}</option>{field.enum?.map((option) => <option key={option} value={option}>{option}</option>)}</Select>;
     case "textarea":
       return <textarea {...common} value={String(value ?? "")} placeholder={field.placeholder ?? undefined} onChange={(event) => onChange(event.target.value)} />;
     case "reference":
@@ -28,7 +29,7 @@ function FieldControl({ field, value, onChange, id, describedBy }: {
     case "text":
       return <Input {...common} type="text" value={String(value ?? "")} placeholder={field.placeholder ?? undefined} onChange={(event) => onChange(event.target.value)} />;
     default:
-      return <div className="unsupported-field" role="note">Explicit editor required.</div>;
+      return <div className="unsupported-field" role="note">{message(locale, "resource.editor.required")}</div>;
   }
 }
 
@@ -57,7 +58,7 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
       await onCreated();
     } catch (failure) {
       setSubmitError({
-        message: failure instanceof Error ? failure.message : "Create failed",
+        message: failure instanceof Error ? failure.message : message(locale, "resource.createFailed"),
         requestId: failure instanceof ApiError ? failure.requestId : undefined,
       });
     } finally {
@@ -70,7 +71,7 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
       const field = metadata.fields[name];
       if (!field || field.read_only || field.generated) return null;
       const fieldError = fieldErrors[name];
-      return <Field key={name} label={field.label} help={field.help} {...(fieldError ? { error: fieldError } : {})} {...(field.required === undefined ? {} : { required: field.required })}>{({ id, describedBy }) => <FieldControl field={field} value={draft[name]} id={id} describedBy={describedBy} onChange={(value) => {
+      return <Field key={name} label={field.label} help={field.help} {...(fieldError ? { error: fieldError } : {})} {...(field.required === undefined ? {} : { required: field.required })}>{({ id, describedBy }) => <FieldControl field={field} value={draft[name]} id={id} describedBy={describedBy} locale={locale} onChange={(value) => {
         setDraft((current) => ({ ...current, [name]: value }));
         if (fieldErrors[name]) setFieldErrors((current) => { const next = { ...current }; delete next[name]; return next; });
       }} />}</Field>;
