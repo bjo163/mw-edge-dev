@@ -58,7 +58,7 @@ function uiField(name: string, field: FieldDefinition, readonlyResource: boolean
     placeholder: null,
     widget: widgetFor(field),
     format: formatFor(name, field),
-    read_only: readonlyResource || generated || field.type === "Relation",
+    read_only: readonlyResource || generated || field.type === "Relation" || field.type === "Json",
     generated,
     sortable,
     filterable,
