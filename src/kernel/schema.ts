@@ -38,6 +38,11 @@ export function createTableSql(model: RegisteredModel, registry: ModelRegistry):
   const columns = ['"id" INTEGER PRIMARY KEY AUTOINCREMENT'];
   const constraints: string[] = [];
 
+  if (model.optimistic_concurrency && model.fields.record_version) {
+    throw new Error(`Optimistic model ${model.name} cannot declare reserved field record_version`);
+  }
+  if (model.optimistic_concurrency) columns.push('"record_version" INTEGER NOT NULL DEFAULT 1');
+
   for (const [name, field] of Object.entries(model.fields)) {
     let column = `${q(name)} ${SQL_TYPE[field.type]}`;
     if (field.required) column += " NOT NULL";
