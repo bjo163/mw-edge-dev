@@ -67,21 +67,30 @@ function Rotate({ locale, onDone }: { readonly locale: Locale; readonly onDone: 
 
 function Resource({ locale, metadata }: { readonly locale: Locale; readonly metadata: ResourceMetadata }) {
   const [data, setData] = useState<{ items: readonly Record<string, unknown>[]; total: number }>();
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ResourceFailure>();
   const [draft, setDraft] = useState<Record<string, unknown>>({});
   const refresh = async () => {
+    setLoading(true);
     setError(undefined);
     try {
       setData(await api.list(metadata.resource_id));
     } catch (failure) {
       setError(toResourceFailure(failure, "Load failed"));
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => { void refresh(); }, [metadata.resource_id]);
 
   return <section><header className="resource-head"><div><div className="eyebrow">{metadata.domain}</div><h2>{metadata.label}</h2></div><StatusBadge>{metadata.authority}</StatusBadge></header>{error && <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void refresh()}>{message(locale, "action.retry")}</Button>}{error.requestId && <details><summary>{message(locale, "state.technicalDetails")}</summary><p>{message(locale, "state.requestId")}: <code>{error.requestId}</code></p></details>}</InlineError>}
   {metadata.crud.create && <details className="panel"><summary>{message(locale, "resource.create")}</summary><form className="grid" onSubmit={async (event) => { event.preventDefault(); try { await api.create(metadata.resource_id, draft); setDraft({}); await refresh(); } catch (failure) { setError({ ...toResourceFailure(failure, "Create failed"), retryable: false }); } }}>{Object.entries(metadata.fields).map(([name, field]) => <label key={name}>{name}{field.type === "Boolean" ? <input type="checkbox" checked={Boolean(draft[name])} onChange={(event) => setDraft({ ...draft, [name]: event.target.checked })} /> : field.type === "Enum" ? <select value={String(draft[name] ?? "")} onChange={(event) => setDraft({ ...draft, [name]: event.target.value })} required={field.required}><option value="">Select…</option>{field.enum?.map((item) => <option key={item} value={item}>{item}</option>)}</select> : <input value={String(draft[name] ?? "")} onChange={(event) => setDraft({ ...draft, [name]: field.type === "Integer" || field.type === "Decimal" ? Number(event.target.value) : event.target.value })} required={field.required} />}</label>)}<Button type="submit">{message(locale, "resource.create")}</Button></form></details>}
-  <div className="table-wrap"><table><thead><tr>{metadata.views.list.columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{data?.items.map((row, index) => <tr key={String(row.id ?? index)}>{metadata.views.list.columns.map((column) => <td key={column}>{typeof row[column] === "object" ? JSON.stringify(row[column]) : String(row[column] ?? "")}</td>)}</tr>)}</tbody></table></div></section>;
+  {loading
+    ? <p role="status" aria-busy="true">{message(locale, "state.loading")}</p>
+    : !error && data?.items.length === 0
+      ? <EmptyState title={message(locale, "state.empty")} description={metadata.label} />
+      : <div className="table-wrap"><table><thead><tr>{metadata.views.list.columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{data?.items.map((row, index) => <tr key={String(row.id ?? index)}>{metadata.views.list.columns.map((column) => <td key={column}>{typeof row[column] === "object" ? JSON.stringify(row[column]) : String(row[column] ?? "")}</td>)}</tr>)}</tbody></table></div>}
+  </section>;
 }
 
 export function App() {

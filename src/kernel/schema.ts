@@ -81,8 +81,9 @@ export function createIndexSql(model: RegisteredModel, index: ModelIndexDefiniti
     if (!model.fields[field]) throw new Error(`Unknown index field ${model.name}.${field}`);
     return q(field);
   });
+  const qualifier = index.unique ? "UNIQUE " : "";
 
-  return `CREATE INDEX IF NOT EXISTS ${q(ownedIndexName(model, index))} ON ${q(tableFor(model))} (${fields.join(",")})`;
+  return `CREATE ${qualifier}INDEX IF NOT EXISTS ${q(ownedIndexName(model, index))} ON ${q(tableFor(model))} (${fields.join(",")})`;
 }
 
 export function validateModelIndexes(model: RegisteredModel): void {
