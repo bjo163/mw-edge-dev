@@ -49,7 +49,7 @@ export interface ValidationErrorDetails {
 }
 
 export class ValidationError extends MwError {
-  declare readonly details: ValidationErrorDetails;
+  override readonly details: ValidationErrorDetails;
 
   constructor(message: string, details: ValidationErrorDetails) {
     super("VALIDATION_FAILED", message, 400, details);
