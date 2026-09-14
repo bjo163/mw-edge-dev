@@ -119,7 +119,8 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
     {metadata.views.form.sections.map((section) => <fieldset key={section.id}><legend>{section.label}</legend><div className="grid">{section.fields.map((name) => {
       const field = metadata.fields[name];
       if (!field || field.read_only || field.generated) return null;
-      return <Field key={name} label={field.label} help={field.help} error={fieldErrors[name]} required={field.required}>{({ id, describedBy }) => <FieldControl field={field} value={draft[name]} id={id} describedBy={describedBy} onChange={(value) => {
+      const fieldError = fieldErrors[name];
+      return <Field key={name} label={field.label} help={field.help} {...(fieldError ? { error: fieldError } : {})} {...(field.required === undefined ? {} : { required: field.required })}>{({ id, describedBy }) => <FieldControl field={field} value={draft[name]} id={id} describedBy={describedBy} onChange={(value) => {
         setDraft((current) => ({ ...current, [name]: value }));
         if (fieldErrors[name]) setFieldErrors((current) => { const next = { ...current }; delete next[name]; return next; });
       }} />}</Field>;
