@@ -1,31 +1,31 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ApiError, api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
+import { api, type AppMetadata, type Principal, type ResourceMetadata } from "./api";
 import { message, resolveLocale, type Locale } from "./i18n/messages";
+import { ResourceDetail } from "./resource/detail";
+import { ResourceCreateForm } from "./resource/form";
+import { ResourceGrid } from "./resource/grid";
 import { Button, EmptyState, InlineError, LoadingState, StatusBadge } from "./ui/primitives";
 
 type Route =
   | { readonly kind: "home" }
   | { readonly kind: "resource"; readonly resourceId: string }
+  | { readonly kind: "record"; readonly resourceId: string; readonly recordId: string }
   | { readonly kind: "not-found" };
 
-type ResourceFailure = {
-  readonly message: string;
-  readonly requestId: string | undefined;
-  readonly retryable: boolean;
-};
+function decodeSegment(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try { return decodeURIComponent(value); } catch { return undefined; }
+}
 
 function readRoute(): Route {
   const segments = location.pathname.split("/").filter(Boolean);
   if (segments.length === 0) return { kind: "home" };
-  if (segments.length === 2 && segments[0] === "resources") {
-    const resourceSegment = segments[1];
-    if (!resourceSegment) return { kind: "not-found" };
-    try {
-      return { kind: "resource", resourceId: decodeURIComponent(resourceSegment) };
-    } catch {
-      return { kind: "not-found" };
-    }
-  }
+  if (segments[0] !== "resources") return { kind: "not-found" };
+  const resourceId = decodeSegment(segments[1]);
+  if (!resourceId) return { kind: "not-found" };
+  if (segments.length === 2) return { kind: "resource", resourceId };
+  const recordId = decodeSegment(segments[2]);
+  if (segments.length === 3 && recordId) return { kind: "record", resourceId, recordId };
   return { kind: "not-found" };
 }
 
@@ -33,12 +33,8 @@ function resourcePath(resourceId: string) {
   return `/resources/${encodeURIComponent(resourceId)}`;
 }
 
-function toResourceFailure(failure: unknown, fallback: string): ResourceFailure {
-  return {
-    message: failure instanceof Error ? failure.message : fallback,
-    requestId: failure instanceof ApiError ? failure.requestId : undefined,
-    retryable: failure instanceof ApiError && failure.retryable,
-  };
+function recordPath(resourceId: string, recordId: string | number) {
+  return `${resourcePath(resourceId)}/${encodeURIComponent(String(recordId))}`;
 }
 
 function Login({ locale, onLogin }: { readonly locale: Locale; readonly onLogin: () => Promise<void> }) {
@@ -65,32 +61,13 @@ function Rotate({ locale, onDone }: { readonly locale: Locale; readonly onDone: 
   return <main className="center"><form className="panel login" onSubmit={async (event) => { event.preventDefault(); try { await api.changePassword(password); await onDone(); } catch (failure) { setError(failure instanceof Error ? failure.message : "Password change failed"); } }}><h1>{message(locale, "auth.rotate.title")}</h1><p>{message(locale, "auth.rotate.description")}</p><label>{message(locale, "auth.password")}<input type="password" minLength={12} value={password} onChange={(event) => setPassword(event.target.value)} /></label>{error && <InlineError>{error}</InlineError>}<Button type="submit">{message(locale, "auth.rotate.action")}</Button></form></main>;
 }
 
-function Resource({ locale, metadata }: { readonly locale: Locale; readonly metadata: ResourceMetadata }) {
-  const [data, setData] = useState<{ items: readonly Record<string, unknown>[]; total: number }>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<ResourceFailure>();
-  const [draft, setDraft] = useState<Record<string, unknown>>({});
-  const refresh = async () => {
-    setLoading(true);
-    setError(undefined);
-    try {
-      setData(await api.list(metadata.resource_id));
-    } catch (failure) {
-      setError(toResourceFailure(failure, "Load failed"));
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => { void refresh(); }, [metadata.resource_id]);
-
-  return <section><header className="resource-head"><div><div className="eyebrow">{metadata.domain}</div><h2>{metadata.label}</h2></div><StatusBadge>{metadata.authority}</StatusBadge></header>{error && <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void refresh()}>{message(locale, "action.retry")}</Button>}{error.requestId && <details><summary>{message(locale, "state.technicalDetails")}</summary><p>{message(locale, "state.requestId")}: <code>{error.requestId}</code></p></details>}</InlineError>}
-  {metadata.crud.create && <details className="panel"><summary>{message(locale, "resource.create")}</summary><form className="grid" onSubmit={async (event) => { event.preventDefault(); try { await api.create(metadata.resource_id, draft); setDraft({}); await refresh(); } catch (failure) { setError({ ...toResourceFailure(failure, "Create failed"), retryable: false }); } }}>{Object.entries(metadata.fields).map(([name, field]) => <label key={name}>{name}{field.type === "Boolean" ? <input type="checkbox" checked={Boolean(draft[name])} onChange={(event) => setDraft({ ...draft, [name]: event.target.checked })} /> : field.type === "Enum" ? <select value={String(draft[name] ?? "")} onChange={(event) => setDraft({ ...draft, [name]: event.target.value })} required={field.required}><option value="">Select…</option>{field.enum?.map((item) => <option key={item} value={item}>{item}</option>)}</select> : <input value={String(draft[name] ?? "")} onChange={(event) => setDraft({ ...draft, [name]: field.type === "Integer" || field.type === "Decimal" ? Number(event.target.value) : event.target.value })} required={field.required} />}</label>)}<Button type="submit">{message(locale, "resource.create")}</Button></form></details>}
-  {loading
-    ? <p role="status" aria-busy="true">{message(locale, "state.loading")}</p>
-    : !error && data?.items.length === 0
-      ? <EmptyState title={message(locale, "state.empty")} description={metadata.label} />
-      : <div className="table-wrap"><table><thead><tr>{metadata.views.list.columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{data?.items.map((row, index) => <tr key={String(row.id ?? index)}>{metadata.views.list.columns.map((column) => <td key={column}>{typeof row[column] === "object" ? JSON.stringify(row[column]) : String(row[column] ?? "")}</td>)}</tr>)}</tbody></table></div>}
-  </section>;
+function ResourceWorkbench({ locale, metadata, onOpenRecord }: {
+  readonly locale: Locale;
+  readonly metadata: ResourceMetadata;
+  readonly onOpenRecord: (record: string | number) => void;
+}) {
+  const [refreshToken, setRefreshToken] = useState(0);
+  return <section className="resource-workbench"><header className="resource-head"><div><div className="eyebrow">{metadata.domain}</div><h1>{metadata.labels.plural}</h1><p>{metadata.labels.description}</p></div><StatusBadge label="Authority">{metadata.authority}</StatusBadge></header><ResourceCreateForm metadata={metadata} locale={locale} onCreated={() => setRefreshToken((value) => value + 1)} /><ResourceGrid metadata={metadata} locale={locale} onOpenRecord={onOpenRecord} refreshToken={refreshToken} /></section>;
 }
 
 export function App() {
@@ -129,19 +106,27 @@ export function App() {
     contentRef.current?.focus({ preventScroll: true });
   }, [loading, principal, route]);
 
-  const resource = useMemo(() => route.kind === "resource" ? metadata?.resources.find((item) => item.resource_id === route.resourceId) : undefined, [metadata, route]);
+  const resourceId = route.kind === "resource" || route.kind === "record" ? route.resourceId : undefined;
+  const resource = useMemo(() => resourceId ? metadata?.resources.find((item) => item.resource_id === resourceId || item.route_key === resourceId) : undefined, [metadata, resourceId]);
   if (loading) return <LoadingState />;
   if (!principal) return <Login locale={locale} onLogin={load} />;
   if (principal.must_rotate_password) return <Rotate locale={locale} onDone={load} />;
 
   const backToResources = <Button onClick={() => navigate("/")}>{message(locale, "action.back")}</Button>;
-  const content = route.kind === "resource"
-    ? resource
-      ? <Resource locale={locale} metadata={resource} />
-      : <EmptyState title={message(locale, "resource.notFound.title")} description={message(locale, "resource.notFound.description")} action={backToResources} />
-    : route.kind === "not-found"
-      ? <EmptyState title={message(locale, "route.notFound.title")} description={message(locale, "route.notFound.description")} action={backToResources} />
-      : <EmptyState title={message(locale, "resource.select")} description="Choose a resource from the navigation to begin." />;
+  let content;
+  if (route.kind === "resource") {
+    content = resource
+      ? <ResourceWorkbench locale={locale} metadata={resource} onOpenRecord={(record) => navigate(`${recordPath(resource.route_key, record)}${location.search}`)} />
+      : <EmptyState title={message(locale, "resource.notFound.title")} description={message(locale, "resource.notFound.description")} action={backToResources} />;
+  } else if (route.kind === "record") {
+    content = resource
+      ? <ResourceDetail locale={locale} metadata={resource} record={route.recordId} onBack={() => navigate(`${resourcePath(resource.route_key)}${location.search}`)} />
+      : <EmptyState title={message(locale, "resource.notFound.title")} description={message(locale, "resource.notFound.description")} action={backToResources} />;
+  } else if (route.kind === "not-found") {
+    content = <EmptyState title={message(locale, "route.notFound.title")} description={message(locale, "route.notFound.description")} action={backToResources} />;
+  } else {
+    content = <EmptyState title={message(locale, "resource.select")} description="Choose a resource from the navigation to begin." />;
+  }
 
-  return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).map((item) => <Button className={route.kind === "resource" && route.resourceId === item.resource_id ? "active" : ""} key={item.resource_id} onClick={() => navigate(resourcePath(item.resource_id))}>{item.label}</Button>)}</div>)}<Button onClick={async () => { await api.logout(); location.reload(); }}>{message(locale, "nav.logout")}</Button></aside><main ref={contentRef} tabIndex={-1}>{content}</main></div>;
+  return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).sort((a, b) => a.navigation.order - b.navigation.order || a.label.localeCompare(b.label)).map((item) => <Button className={resource?.resource_id === item.resource_id ? "active" : ""} key={item.resource_id} onClick={() => navigate(resourcePath(item.route_key))}>{item.label}</Button>)}</div>)}<Button onClick={async () => { await api.logout(); location.reload(); }}>{message(locale, "nav.logout")}</Button></aside><main ref={contentRef} tabIndex={-1}>{content}</main></div>;
 }

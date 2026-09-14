@@ -6,6 +6,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { MwError } from "../kernel/errors.js";
 import type { BootEnvironment } from "../kernel/plugins/host.js";
 import type { InputRecord, OutputRecord } from "../kernel/orm.js";
+import type { FieldDefinition, RecordValue } from "../kernel/types.js";
 import { generateSessionToken, hashPassword, tokenHash, verifyPassword } from "../standalone/auth.js";
 
 type AppEnv = {
@@ -22,6 +23,32 @@ function publicRecord(env: BootEnvironment, modelName: string, row: OutputRecord
     if (field.sensitive) delete output[name];
   }
   return output;
+}
+
+function parseFilterValue(field: FieldDefinition, raw: string): RecordValue {
+  switch (field.type) {
+    case "Boolean":
+      if (raw === "true" || raw === "1") return true;
+      if (raw === "false" || raw === "0") return false;
+      throw new MwError("INVALID_QUERY", "Boolean filters must be true or false", 400);
+    case "Integer": {
+      const value = Number(raw);
+      if (!Number.isInteger(value)) throw new MwError("INVALID_QUERY", "Integer filter is invalid", 400);
+      return value;
+    }
+    case "Decimal": {
+      const value = Number(raw);
+      if (!Number.isFinite(value)) throw new MwError("INVALID_QUERY", "Decimal filter is invalid", 400);
+      return value;
+    }
+    case "String":
+    case "Enum":
+    case "DateTime":
+    case "Reference":
+      return raw;
+    default:
+      throw new MwError("INVALID_QUERY", `Filtering ${field.type} fields is not supported`, 400);
+  }
 }
 
 export function createApp(env: BootEnvironment): Hono<AppEnv> {
@@ -138,16 +165,56 @@ export function createApp(env: BootEnvironment): Hono<AppEnv> {
     const modelName = context.req.param("model");
     const metadata = env.metadata.resources.find((resource) => resource.resource_id === modelName);
     if (!metadata?.crud.list) throw new MwError("ACCESS_DENIED", "Resource is not listable", 403);
-    const limit = Number(context.req.query("limit") ?? 50);
-    const offset = Number(context.req.query("offset") ?? 0);
+
+    const url = new URL(context.req.url);
+    const limit = Number(url.searchParams.get("limit") ?? metadata.views.list.default_page_size);
+    const offset = Number(url.searchParams.get("offset") ?? 0);
+    const sortField = url.searchParams.get("sort") ?? metadata.views.list.default_sort?.field ?? null;
+    const direction = (url.searchParams.get("direction") ?? metadata.views.list.default_sort?.direction ?? "asc").toLowerCase();
+    if (sortField && !metadata.views.list.sortable_fields.includes(sortField)) {
+      throw new MwError("INVALID_QUERY", `Field ${sortField} is not sortable`, 400);
+    }
+    if (direction !== "asc" && direction !== "desc") {
+      throw new MwError("INVALID_QUERY", "Sort direction must be asc or desc", 400);
+    }
+
+    const filters: Record<string, RecordValue> = {};
+    const model = env.registry.get(modelName);
+    for (const [key, raw] of url.searchParams.entries()) {
+      if (!key.startsWith("filter.")) continue;
+      const fieldName = key.slice("filter.".length);
+      if (!metadata.views.list.filterable_fields.includes(fieldName)) {
+        throw new MwError("INVALID_QUERY", `Field ${fieldName} is not filterable`, 400);
+      }
+      const field = model.fields[fieldName];
+      if (!field) throw new MwError("INVALID_QUERY", `Unknown filter field ${fieldName}`, 400);
+      filters[fieldName] = parseFilterValue(field, raw);
+    }
+
+    const orderBy = sortField ? `${sortField} ${direction}` : undefined;
     const store = env.orm.model(modelName);
     return context.json({
-      items: store.find({ limit, offset }).map((row) => publicRecord(env, modelName, row)),
-      total: store.count(),
-      limit: Math.min(Math.max(limit || 50, 1), 200),
+      items: store.find({ limit, offset, filters, ...(orderBy ? { orderBy } : {}) }).map((row) => publicRecord(env, modelName, row)),
+      total: store.count(filters),
+      limit: Math.min(Math.max(limit || metadata.views.list.default_page_size, 1), 200),
       offset: Math.max(offset || 0, 0),
+      sort: sortField,
+      direction,
+      filters,
     });
   });
+
+  app.get("/api/admin/resources/:model/:record", (context) => {
+    const modelName = context.req.param("model");
+    const metadata = env.metadata.resources.find((resource) => resource.resource_id === modelName);
+    if (!metadata?.crud.read) throw new MwError("ACCESS_DENIED", "Resource is not readable", 403);
+    const rawRecord = context.req.param("record");
+    const record = metadata.record_key === "id" && /^\d+$/.test(rawRecord) ? Number(rawRecord) : rawRecord;
+    const row = publicRecord(env, modelName, env.orm.model(modelName).get(record));
+    if (!row) throw new MwError("NOT_FOUND", "Record not found", 404);
+    return context.json({ item: row });
+  });
+
   app.post("/api/admin/resources/:model", async (context) => {
     const modelName = context.req.param("model");
     const metadata = env.metadata.resources.find((resource) => resource.resource_id === modelName);
