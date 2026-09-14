@@ -33,3 +33,6 @@ export type {
   ProfileDocument,
   ResourceMetadata,
 } from "./kernel/types.js";
+
+export { ValidationError, ValidationRegistry } from "./kernel/validation.js";
+export type { DomainValidator, DomainValidatorContext, FieldValidationPlan, FieldValidator, FieldValidatorContext, ValidationContext, ValidationFailure, ValidationPlan, ValidationRule } from "./kernel/validation.js";
