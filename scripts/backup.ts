@@ -35,13 +35,13 @@ if (existsSync(backupDir)) throw new Error(`Backup destination already exists: $
 mkdirSync(dirname(backupDir), { recursive: true });
 mkdirSync(backupDir);
 
-interface MigrationRow {
+type MigrationRow = {
   readonly component_id: string;
   readonly component_version: string;
   readonly migration_id: string;
   readonly checksum: string;
   readonly applied_at: string;
-}
+};
 
 const snapshots: Array<{
   domain: string;
