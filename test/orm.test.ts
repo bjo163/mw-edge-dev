@@ -37,3 +37,41 @@ test("native ORM creates, relates, updates and rolls back in one domain", async 
   assert.equal(product.get("prd-1")?.name, "Internet Pro");
   env.close();
 });
+
+test("ORM comparison operators are parameterized, bounded and deterministic", async () => {
+  const env = await boot({ profile: "business-base", memory: true });
+  const product = env.orm.model("catalog.product");
+
+  try {
+    for (const [ref, name] of [["prd-a", "Alpha"], ["prd-b", "Beta"], ["prd-c", "Gamma"]] as const) {
+      product.create({
+        product_ref: ref,
+        owner_ref: "owner-1",
+        tenant_ref: "tenant-1",
+        name,
+        product_kind: "service",
+      });
+    }
+
+    assert.deepEqual(
+      product.find({ comparisons: [{ field: "name", op: "in", value: ["Alpha", "Gamma"] }] }).map((row) => row.name),
+      ["Alpha", "Gamma"],
+    );
+    assert.deepEqual(
+      product.find({ comparisons: [{ field: "name", op: "ne", value: "Beta" }] }).map((row) => row.name),
+      ["Alpha", "Gamma"],
+    );
+    assert.equal(product.find({ comparisons: [{ field: "id", op: "gt", value: 1 }] }).length, 2);
+    assert.equal(product.count({}, [{ field: "name", op: "notIn", value: ["Alpha"] }]), 2);
+    assert.equal(
+      product.find({ comparisons: [{ field: "name", op: "eq", value: "Alpha' OR 1=1 --" }] }).length,
+      0,
+    );
+    assert.throws(
+      () => product.find({ comparisons: [{ field: "name", op: "in", value: [] }] }),
+      /requires at least one value/i,
+    );
+  } finally {
+    env.close();
+  }
+});

@@ -5,7 +5,9 @@ export { resourceMetadata, buildMetadata } from "./kernel/metadata.js";
 export { CommandRegistry, executeIdempotently } from "./kernel/commands.js";
 export { QueryRegistry } from "./kernel/queries.js";
 export { applySeeds, resolveSeedOrder, seedKey } from "./kernel/seeds/dependency.js";
+export { compileComparisonFilters } from "./kernel/query-filter.js";
 export type { SeedPlan } from "./kernel/seeds/dependency.js";
+export type { ComparisonFilter, ComparisonOperator } from "./kernel/query-filter.js";
 export type {
   CommandIdempotency,
   CommandInput,
