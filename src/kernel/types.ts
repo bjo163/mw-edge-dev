@@ -27,6 +27,7 @@ export interface FieldDefinition {
 export interface ModelIndexDefinition {
   readonly id: string;
   readonly fields: readonly string[];
+  readonly unique?: boolean;
 }
 
 export type ModelAuthority =
