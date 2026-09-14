@@ -62,6 +62,30 @@ test("documented runtime security inputs stay tied to production behavior", () =
   assert.ok(docs.includes("Set to `1` to mark the session cookie `Secure`"), "docs must describe MW_COOKIE_SECURE semantics");
 });
 
+test("documented bootstrap credential input stays tied to standalone seeding", () => {
+  const seed = read("plugins/standalone/seed.ts");
+  const docs = read("docs/reference/environment-contract.md");
+
+  assert.match(
+    seed,
+    /process\.env\.MW_BOOTSTRAP_ADMIN_PASSWORD \?\? generateBootstrapPassword\(\)/,
+    "standalone bootstrap must either use the explicit password input or generate a one-time credential",
+  );
+  assert.match(
+    seed,
+    /!process\.env\.MW_BOOTSTRAP_ADMIN_PASSWORD && !context\.memory/,
+    "generated bootstrap credentials must only be persisted when no explicit password was supplied",
+  );
+  assert.ok(
+    docs.includes("`MW_BOOTSTRAP_ADMIN_PASSWORD` | sensitive optional input"),
+    "environment contract must classify MW_BOOTSTRAP_ADMIN_PASSWORD as sensitive optional input",
+  );
+  assert.ok(
+    docs.includes("tests must set an explicit test-only value"),
+    "environment contract must require deterministic tests to provide an explicit bootstrap password",
+  );
+});
+
 test("documented API bind inputs stay tied to server defaults", () => {
   const server = read("src/server.ts");
   const docs = read("docs/reference/environment-contract.md");
