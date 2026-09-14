@@ -5,7 +5,7 @@ import { createApp } from "../src/http/app.js";
 import { resourceMetadata } from "../src/kernel/metadata.js";
 import { ModelRegistry } from "../src/kernel/model-registry.js";
 import type { ModelAuthority } from "../src/kernel/types.js";
-import { serializeResourceForm } from "../web/src/resource/form.js";
+import { serializeResourceForm } from "../web/src/resource/form-serialization.js";
 import type { ResourceMetadata as WebResourceMetadata } from "../web/src/api.js";
 
 const widgetAllowlist = new Set(["text", "textarea", "number", "checkbox", "select", "datetime", "reference", "relation", "json"]);
