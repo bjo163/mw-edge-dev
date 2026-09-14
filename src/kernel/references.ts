@@ -46,7 +46,7 @@ export class ReferenceResolverRegistry {
 
   constructor(options: ReferenceResolverRegistryOptions = {}) {
     this.maxLimit = boundedInteger("maxLimit", options.maxLimit ?? 100, 1, 1000);
-    this.defaultLimit = boundedInteger("defaultLimit", options.defaultLimit ?? 20, 1, this.maxLimit);
+    this.defaultLimit = boundedInteger("defaultLimit", options.defaultLimit ?? Math.min(20, this.maxLimit), 1, this.maxLimit);
     this.timeoutMs = boundedInteger("timeoutMs", options.timeoutMs ?? 1000, 1, 30000);
   }
 
