@@ -6,6 +6,7 @@ import type { RegisteredModel, ModelRegistry } from "./model-registry.js";
 import type { DomainDatabaseRouter } from "./database/router.js";
 import type { SqliteDatabase } from "./database/sqlite.js";
 import { compileBooleanFilterGroup, compileComparisonFilters, type BooleanFilterGroup, type ComparisonFilter } from "./query-filter.js";
+import { compileQueryShape, type QueryPagination, type QuerySortTerm } from "./query-shape.js";
 import { MwError } from "./errors.js";
 
 export type InputRecord = Record<string, RecordValue | undefined>;
@@ -39,6 +40,18 @@ function cleanRow(model: RegisteredModel, row: DbRow | undefined): OutputRecord 
     if (name in output) output[name] = decode(field, output[name]);
   }
   return output;
+}
+
+export interface FindOptions {
+  readonly filters?: Readonly<Record<string, RecordValue>>;
+  readonly comparisons?: readonly ComparisonFilter[];
+  readonly filterGroup?: BooleanFilterGroup;
+  readonly select?: readonly string[];
+  readonly sort?: readonly QuerySortTerm[];
+  readonly pagination?: QueryPagination;
+  readonly limit?: number;
+  readonly offset?: number;
+  readonly orderBy?: string;
 }
 
 export class ModelStore {
@@ -120,15 +133,8 @@ export class ModelStore {
     return cleanRow(this.model, this.db.get<DbRow>(`SELECT * FROM ${q(this.table)} WHERE id=?`, [ref]));
   }
 
-  find(options: {
-    readonly filters?: Readonly<Record<string, RecordValue>>;
-    readonly comparisons?: readonly ComparisonFilter[];
-    readonly filterGroup?: BooleanFilterGroup;
-    readonly limit?: number;
-    readonly offset?: number;
-    readonly orderBy?: string;
-  } = {}): readonly OutputRecord[] {
-    const { filters = {}, comparisons = [], filterGroup, limit = 50, offset = 0, orderBy } = options;
+  find(options: FindOptions = {}): readonly OutputRecord[] {
+    const { filters = {}, comparisons = [], filterGroup } = options;
     const clauses: string[] = [];
     const params: SQLInputValue[] = [];
 
@@ -148,29 +154,23 @@ export class ModelStore {
       params.push(...grouped.params);
     }
 
-    let order = "id ASC";
-    if (orderBy) {
-      const [field, directionRaw = "asc"] = orderBy.trim().split(/\s+/);
-      if (!field) throw new Error("Invalid orderBy");
-      const direction = directionRaw.toUpperCase();
-      if ((!this.model.fields[field] && field !== "id") || !["ASC", "DESC"].includes(direction)) {
-        throw new Error("Invalid orderBy");
-      }
-      order = `${q(field)} ${direction}`;
+    const shape = compileQueryShape(this.model.fields, options);
+    if (shape.afterId !== undefined) {
+      clauses.push(`${q("id")}>?`);
+      params.push(shape.afterId);
     }
 
-    const boundedLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
-    const boundedOffset = Math.max(Number(offset) || 0, 0);
     const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
     return this.db
       .all<DbRow>(
-        `SELECT * FROM ${q(this.table)}${where} ORDER BY ${order} LIMIT ? OFFSET ?`,
-        [...params, boundedLimit, boundedOffset],
+        `SELECT ${shape.selectSql} FROM ${q(this.table)}${where} ORDER BY ${shape.orderSql} LIMIT ? OFFSET ?`,
+        [...params, shape.limit, shape.offset],
       )
       .map((row) => cleanRow(this.model, row) ?? row);
   }
 
-  findOne(options: Parameters<ModelStore["find"]>[0] = {}): OutputRecord | undefined {
+  findOne(options: FindOptions = {}): OutputRecord | undefined {
+    if (options.pagination) throw new Error("findOne does not support pagination");
     return this.find({ ...options, limit: 1 })[0];
   }
 
