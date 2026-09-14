@@ -4,6 +4,7 @@ import { basename, resolve } from "node:path";
 import { SqliteDatabase } from "../src/kernel/database/sqlite.js";
 import { planProfile, projectRoot } from "../src/kernel/plugins/host.js";
 import { verifyPluginLock, type PluginLock } from "../src/kernel/plugins/lock.js";
+import type { DbRow } from "../src/kernel/types.js";
 import { stableStringify } from "../src/kernel/util.js";
 
 const args = process.argv.slice(2);
@@ -16,7 +17,7 @@ const backupDir = resolve(value("--backup-dir") ?? "");
 const requestedProfile = value("--profile") ?? process.env.MW_PROFILE;
 if (!value("--backup-dir")) throw new Error("--backup-dir is required");
 
-interface MigrationRow {
+interface MigrationRow extends DbRow {
   readonly component_id: string;
   readonly component_version: string;
   readonly migration_id: string;
