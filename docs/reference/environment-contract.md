@@ -75,7 +75,7 @@ Dependency installation and GitHub-specific release/governance verification can 
 
 ## CI equivalence
 
-Canonical CI runs on `ubuntu-latest`, installs pnpm `11.17.0`, installs Node.js `22.19.0`, executes `pnpm install --frozen-lockfile`, and then executes `pnpm readiness` before governance/release work. A local reproduction intended to match CI should use the same Node.js/pnpm versions and command sequence.
+Canonical CI runs on `ubuntu-latest`, installs pnpm `11.17.0`, installs Node.js `22.19.0`, executes `pnpm install --frozen-lockfile`, and then executes `pnpm readiness` before governance/release work. A local reproduction intended to match CI should use the same Node.js and package-manager versions and command sequence.
 
 Release evidence is valid only for the exact source revision that passed its required verification. Re-running commands against a different checkout, dependency graph, profile, or persistent data directory is new evidence and must not be represented as verification of the earlier revision.
 
@@ -84,7 +84,7 @@ Release evidence is valid only for the exact source revision that passed its req
 Treat the following as contract drift requiring review:
 
 - `package.json` changes `engines.node`, `packageManager`, or canonical script names;
-- CI selects Node.js or pnpm versions incompatible with the declared package contract;
+- CI selects Node.js or package-manager versions incompatible with the declared package contract;
 - a documented `pnpm` command disappears or changes meaning;
 - a new required environment variable is introduced without an explicit failure mode and documentation classification;
 - verification starts depending on pre-existing mutable data, undisclosed external services, or network access that was previously optional;
