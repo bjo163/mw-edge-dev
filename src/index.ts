@@ -33,3 +33,9 @@ export type {
   ProfileDocument,
   ResourceMetadata,
 } from "./kernel/types.js";
+
+export { ValidationError, ValidationRegistry } from "./kernel/validation.js";
+export type { DomainValidator, DomainValidatorContext, FieldValidationPlan, FieldValidator, FieldValidatorContext, ValidationContext, ValidationFailure, ValidationPlan, ValidationRule } from "./kernel/validation.js";
+
+export { dispatchDomainOutbox, ensureDomainOutboxDelivery } from "./kernel/database/outbox-dispatcher.js";
+export type { OutboxDeliver, OutboxDeliveryContext, OutboxDispatcherOptions, OutboxDispatchResult } from "./kernel/database/outbox-dispatcher.js";

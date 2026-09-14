@@ -1,8 +1,22 @@
 import { useEffect, useState } from "react";
 import { ApiError, api, type ResourceMetadata } from "../api";
-import type { Locale } from "../i18n/messages";
+import { message, type Locale } from "../i18n/messages";
 import { Button, EmptyState, InlineError, LoadingState, StatusBadge } from "../ui/primitives";
 import { ResourceValue } from "./value";
+
+type ReadError = {
+  readonly message: string;
+  readonly status: number | undefined;
+  readonly requestId: string | undefined;
+  readonly retryable: boolean;
+};
+
+const noReadError: ReadError = { message: "", status: undefined, requestId: undefined, retryable: false };
+
+function RequestEvidence({ locale, requestId }: { readonly locale: Locale; readonly requestId: string | undefined }) {
+  if (!requestId) return null;
+  return <details><summary>{message(locale, "state.technicalDetails")}</summary><p>{message(locale, "state.requestId")}: <code>{requestId}</code></p></details>;
+}
 
 export function ResourceDetail({ metadata, record, locale, onBack }: {
   readonly metadata: ResourceMetadata;
@@ -12,11 +26,11 @@ export function ResourceDetail({ metadata, record, locale, onBack }: {
 }) {
   const [item, setItem] = useState<Record<string, unknown>>();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<{ readonly message: string; readonly status: number | undefined; readonly retryable: boolean }>({ message: "", status: undefined, retryable: false });
+  const [error, setError] = useState<ReadError>(noReadError);
 
   const load = async () => {
     setLoading(true);
-    setError({ message: "", status: undefined, retryable: false });
+    setError(noReadError);
     try {
       const result = await api.read(metadata.resource_id, record);
       setItem(result.item);
@@ -24,6 +38,7 @@ export function ResourceDetail({ metadata, record, locale, onBack }: {
       setError({
         message: failure instanceof Error ? failure.message : "Load failed",
         status: failure instanceof ApiError ? failure.status : undefined,
+        requestId: failure instanceof ApiError ? failure.requestId : undefined,
         retryable: failure instanceof ApiError && failure.retryable,
       });
     } finally { setLoading(false); }
@@ -32,9 +47,10 @@ export function ResourceDetail({ metadata, record, locale, onBack }: {
   useEffect(() => { void load(); }, [metadata.resource_id, record]);
 
   if (loading) return <LoadingState />;
-  if (error.status === 404) return <EmptyState title="Record not found" description="The requested record does not exist or is no longer available." action={<Button onClick={onBack}>Back to {metadata.labels.plural}</Button>} />;
-  if (error.message) return <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void load()}>Retry</Button>}<Button onClick={onBack}>Back</Button></InlineError>;
-  if (!item) return <EmptyState title="Record unavailable" description="No readable record was returned." action={<Button onClick={onBack}>Back</Button>} />;
+  if (error.status === 403) return <EmptyState title="Permission denied" description="Your account does not have permission to read this record." action={<><Button onClick={onBack}>Back to {metadata.labels.plural}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></>} />;
+  if (error.status === 404) return <EmptyState title="Record not found" description="The requested record does not exist or is no longer available." action={<><Button onClick={onBack}>Back to {metadata.labels.plural}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></>} />;
+  if (error.message) return <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void load()}>{message(locale, "action.retry")}</Button>}<Button onClick={onBack}>{message(locale, "action.back")}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></InlineError>;
+  if (!item) return <EmptyState title="Record unavailable" description="No readable record was returned." action={<Button onClick={onBack}>{message(locale, "action.back")}</Button>} />;
 
   const identity = item[metadata.record_key] ?? item.id ?? record;
   const primaryValue = metadata.display.primary_field ? item[metadata.display.primary_field] : identity;
