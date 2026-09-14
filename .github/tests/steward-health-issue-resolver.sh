@@ -3,11 +3,21 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RESOLVER="$ROOT/.github/scripts/steward-health-issue-resolver.sh"
+STEWARD="$ROOT/.github/scripts/mw-edge-steward.sh"
 
 assert_eq() {
   local expected="$1" actual="$2" name="$3"
   if [[ "$actual" != "$expected" ]]; then
     printf 'FAIL %s\nexpected: %q\nactual:   %q\n' "$name" "$expected" "$actual" >&2
+    exit 1
+  fi
+  printf 'PASS %s\n' "$name"
+}
+
+assert_contains() {
+  local needle="$1" file="$2" name="$3"
+  if ! grep -Fq -- "$needle" "$file"; then
+    printf 'FAIL %s\nmissing: %s\n' "$name" "$needle" >&2
     exit 1
   fi
   printf 'PASS %s\n' "$name"
@@ -38,3 +48,7 @@ assert_eq $'DUPLICATE\t418\topen\t2\t418,422' "$duplicate" "duplicates select ol
 
 custom="$(printf '%s' '[{"number":7,"state":"open","title":"custom health"}]' | "$RESOLVER" 'custom health')"
 assert_eq $'ONE\t7\topen\t1\t' "$custom" "custom canonical title"
+
+assert_contains 'steward-health-issue-resolver.sh "$HEALTH_TITLE"' "$STEWARD" "controller delegates canonical selection to resolver"
+assert_contains 'Multiple canonical automation-health issues exist; Steward will update only the oldest issue.' "$STEWARD" "controller reports duplicate canonical issues"
+assert_contains 'health_resolution_state" == "UNKNOWN"' "$STEWARD" "controller fails closed when canonical issue visibility is unavailable"
