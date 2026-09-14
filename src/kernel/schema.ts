@@ -1,5 +1,5 @@
 import { q, sha256 } from "./util.js";
-import type { FieldDefinition, ModelDefinition } from "./types.js";
+import type { FieldDefinition, ModelDefinition, ModelIndexDefinition } from "./types.js";
 import type { RegisteredModel, ModelRegistry } from "./model-registry.js";
 import type { SqliteDatabase } from "./database/sqlite.js";
 import type { PluginManifest } from "./types.js";
@@ -65,6 +65,35 @@ export function createTableSql(model: RegisteredModel, registry: ModelRegistry):
   return `CREATE TABLE IF NOT EXISTS ${q(tableFor(model))} (\n  ${[...columns, ...constraints].join(",\n  ")}\n)`;
 }
 
+function ownedIndexName(model: RegisteredModel, index: ModelIndexDefinition): string {
+  return `${model.owner}__${tableFor(model)}__${index.id}`.replaceAll(".", "_");
+}
+
+export function createIndexSql(model: RegisteredModel, index: ModelIndexDefinition): string {
+  if (!/^[a-z][a-z0-9_]*$/.test(index.id)) {
+    throw new Error(`Invalid index id ${model.name}.${index.id}`);
+  }
+  if (index.fields.length === 0) {
+    throw new Error(`Index fields required for ${model.name}.${index.id}`);
+  }
+
+  const fields = index.fields.map((field) => {
+    if (!model.fields[field]) throw new Error(`Unknown index field ${model.name}.${field}`);
+    return q(field);
+  });
+
+  return `CREATE INDEX IF NOT EXISTS ${q(ownedIndexName(model, index))} ON ${q(tableFor(model))} (${fields.join(",")})`;
+}
+
+export function validateModelIndexes(model: RegisteredModel): void {
+  const ids = new Set<string>();
+  for (const index of model.indexes ?? []) {
+    if (ids.has(index.id)) throw new Error(`Duplicate index id ${model.name}.${index.id}`);
+    ids.add(index.id);
+    createIndexSql(model, index);
+  }
+}
+
 export function ensureMetaTables(db: SqliteDatabase): void {
   db.exec(`CREATE TABLE IF NOT EXISTS mw_migrations (
     component_id TEXT NOT NULL,
@@ -93,6 +122,7 @@ export function materializeComponent(input: {
 }): { readonly changed: boolean; readonly checksum: string } {
   const { db, manifest, models, registry } = input;
   ensureMetaTables(db);
+  for (const model of models) validateModelIndexes(model);
   const checksum = sha256({ manifest: { id: manifest.id, version: manifest.version }, models });
   const existing = db.get<{ checksum: string }>(
     "SELECT checksum FROM mw_migrations WHERE component_id=? AND migration_id=?",
@@ -105,7 +135,12 @@ export function materializeComponent(input: {
   if (existing) return { changed: false, checksum };
 
   db.transaction(() => {
-    for (const model of models) db.exec(createTableSql(model, registry));
+    for (const model of models) {
+      db.exec(createTableSql(model, registry));
+      for (const index of [...(model.indexes ?? [])].sort((left, right) => left.id.localeCompare(right.id))) {
+        db.exec(createIndexSql(model, index));
+      }
+    }
     db.run(
       "INSERT INTO mw_migrations(component_id,component_version,migration_id,checksum) VALUES(?,?,?,?)",
       [manifest.id, manifest.version, "0001-declarative-baseline", checksum],

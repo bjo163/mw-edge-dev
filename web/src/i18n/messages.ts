@@ -16,9 +16,12 @@ const en = {
   "route.notFound.title": "Page not found",
   "route.notFound.description": "This route is not supported by the current MW Edge shell.",
   "action.back": "Back",
+  "action.retry": "Retry",
   "state.loading": "Loading",
   "state.empty": "No data yet",
   "state.error": "Something went wrong",
+  "state.technicalDetails": "Technical details",
+  "state.requestId": "Request ID",
 } as const;
 
 type MessageKey = keyof typeof en;
@@ -39,9 +42,12 @@ const id: Record<MessageKey, string> = {
   "route.notFound.title": "Halaman tidak ditemukan",
   "route.notFound.description": "Route ini belum didukung oleh MW Edge shell saat ini.",
   "action.back": "Kembali",
+  "action.retry": "Coba lagi",
   "state.loading": "Memuat",
   "state.empty": "Belum ada data",
   "state.error": "Terjadi kesalahan",
+  "state.technicalDetails": "Detail teknis",
+  "state.requestId": "ID permintaan",
 };
 
 const catalogs: Readonly<Record<Locale, Readonly<Record<MessageKey, string>>>> = { en, id };

@@ -3,11 +3,33 @@ set -euo pipefail
 
 MAX_AGE_SECONDS="${1:-${STEWARD_FRESHNESS_SECONDS:-129600}}"
 NOW_EPOCH="${2:-${STEWARD_NOW_EPOCH:-$(date -u +%s)}}"
+MODE="${3:-probe}"
+SEVERITY="${4:-P1}"
+LABEL="${5:-Scheduled workflow}"
 
 if ! [[ "$MAX_AGE_SECONDS" =~ ^[0-9]+$ ]] || ! [[ "$NOW_EPOCH" =~ ^[0-9]+$ ]]; then
   echo "freshness seconds and now epoch must be non-negative integers" >&2
   exit 2
 fi
+if [[ "$MODE" != "probe" && "$MODE" != "finding" ]]; then
+  echo "usage: $0 [max-age-seconds] [now-epoch] [probe|finding] [severity] [label]" >&2
+  exit 64
+fi
+
+emit_result() {
+  local state="$1" age="$2" evidence="$3" message="$4"
+  if [[ "$MODE" == "finding" ]]; then
+    case "$state" in
+      HEALTHY) return 0 ;;
+      NEVER) printf '%s\tworkflow-freshness\t%s has no successful scheduled run evidence.\t%s\n' "$SEVERITY" "$LABEL" "$evidence" ;;
+      FAILING) printf '%s\tworkflow-freshness\t%s latest scheduled run is failing.\t%s\n' "$SEVERITY" "$LABEL" "$evidence" ;;
+      STALE) printf '%s\tworkflow-freshness\t%s last successful scheduled run is stale.\t%s\n' "$SEVERITY" "$LABEL" "$evidence" ;;
+      INVALID) printf '%s\tworkflow-freshness\t%s has invalid scheduled-run freshness evidence.\t%s\n' "$SEVERITY" "$LABEL" "$evidence" ;;
+    esac
+  else
+    printf '%s\t%s\t%s\t%s\n' "$state" "$age" "$evidence" "$message"
+  fi
+}
 
 payload="$(cat)"
 if ! jq -e 'type == "array"' >/dev/null 2>&1 <<<"$payload"; then
@@ -18,7 +40,7 @@ fi
 scheduled="$(jq '[.[] | select(.event == "schedule") | select(.status == "completed")]' <<<"$payload")"
 count="$(jq 'length' <<<"$scheduled")"
 if [[ "$count" -eq 0 ]]; then
-  printf 'NEVER\t0\t\tno completed scheduled run evidence\n'
+  emit_result NEVER 0 "" "no completed scheduled run evidence"
   exit 0
 fi
 
@@ -30,25 +52,25 @@ last_success="$(jq -c '[.[] | select(.conclusion == "success")][0] // null' <<<"
 if [[ "$latest_conclusion" != "success" ]]; then
   evidence="$latest_url"
   [[ -n "$latest_created" ]] && evidence="$evidence ($latest_created)"
-  printf 'FAILING\t0\t%s\tlatest scheduled run concluded %s\n' "$evidence" "$latest_conclusion"
+  emit_result FAILING 0 "$evidence" "latest scheduled run concluded $latest_conclusion"
   exit 0
 fi
 
 if [[ "$last_success" == "null" ]]; then
-  printf 'NEVER\t0\t\tno successful scheduled run evidence\n'
+  emit_result NEVER 0 "" "no successful scheduled run evidence"
   exit 0
 fi
 
 success_created="$(jq -r '.createdAt // ""' <<<"$last_success")"
 success_url="$(jq -r '.url // ""' <<<"$last_success")"
 if [[ -z "$success_created" ]]; then
-  printf 'NEVER\t0\t%s\tlast successful scheduled run has no timestamp\n' "$success_url"
+  emit_result NEVER 0 "$success_url" "last successful scheduled run has no timestamp"
   exit 0
 fi
 
 success_epoch="$(date -u -d "$success_created" +%s 2>/dev/null || true)"
 if ! [[ "$success_epoch" =~ ^[0-9]+$ ]]; then
-  printf 'INVALID\t0\t%s\tinvalid last-success timestamp: %s\n' "$success_url" "$success_created"
+  emit_result INVALID 0 "$success_url" "invalid last-success timestamp: $success_created"
   exit 0
 fi
 
@@ -59,7 +81,7 @@ fi
 
 evidence="$success_url ($success_created)"
 if (( age > MAX_AGE_SECONDS )); then
-  printf 'STALE\t%s\t%s\tlast successful scheduled run is older than freshness window\n' "$age" "$evidence"
+  emit_result STALE "$age" "$evidence" "last successful scheduled run is older than freshness window"
 else
-  printf 'HEALTHY\t%s\t%s\tlast successful scheduled run is fresh\n' "$age" "$evidence"
+  emit_result HEALTHY "$age" "$evidence" "last successful scheduled run is fresh"
 fi

@@ -16,6 +16,17 @@ run_case() {
   fi
 }
 
+run_finding_case() {
+  local name="$1" expected="$2" payload="$3"
+  local actual
+  actual="$(printf '%s' "$payload" | "$ANALYZER" "$((2 * DAY))" "$NOW" finding P1 "Nightly lifecycle")"
+  if [[ "$actual" != "$expected" ]]; then
+    echo "$name: unexpected finding" >&2
+    printf 'expected: %s\nactual:   %s\n' "$expected" "$actual" >&2
+    exit 1
+  fi
+}
+
 run_case never NEVER "$((2 * DAY))" '[]'
 
 run_case ignores_manual NEVER "$((2 * DAY))" '[
@@ -42,6 +53,16 @@ run_case weekly_fresh HEALTHY "$((9 * DAY))" '[
 run_case recovered HEALTHY "$((2 * DAY))" '[
   {"status":"completed","conclusion":"success","url":"recovered","createdAt":"2026-09-13T22:00:00Z","event":"schedule"},
   {"status":"completed","conclusion":"failure","url":"prior-failure","createdAt":"2026-09-13T00:00:00Z","event":"schedule"}
+]'
+
+run_finding_case healthy_emits_nothing "" '[
+  {"status":"completed","conclusion":"success","url":"fresh","createdAt":"2026-09-13T22:00:00Z","event":"schedule"}
+]'
+run_finding_case stale_emits_finding $'P1\tworkflow-freshness\tNightly lifecycle last successful scheduled run is stale.\tstale (2026-09-10T00:00:00Z)' '[
+  {"status":"completed","conclusion":"success","url":"stale","createdAt":"2026-09-10T00:00:00Z","event":"schedule"}
+]'
+run_finding_case failure_emits_finding $'P1\tworkflow-freshness\tNightly lifecycle latest scheduled run is failing.\tfail (2026-09-14T00:00:00Z)' '[
+  {"status":"completed","conclusion":"failure","url":"fail","createdAt":"2026-09-14T00:00:00Z","event":"schedule"}
 ]'
 
 echo "steward workflow freshness fixtures: ok"
