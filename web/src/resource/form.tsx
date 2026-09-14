@@ -4,15 +4,16 @@ import { message, type Locale } from "../i18n/messages";
 import { Button, ErrorSummary, Field, Input, Select } from "../ui/primitives";
 import { serializeResourceForm, type Draft, type FieldErrors } from "./form-serialization";
 
-function FieldControl({ field, value, onChange, id, describedBy, locale }: {
+function FieldControl({ field, value, onChange, id, describedBy, invalid, locale }: {
   readonly field: ResourceFieldMetadata;
   readonly value: unknown;
   readonly onChange: (value: unknown) => void;
   readonly id: string;
   readonly describedBy: string | undefined;
+  readonly invalid: boolean;
   readonly locale: Locale;
 }) {
-  const common = { id, "aria-describedby": describedBy, required: field.required };
+  const common = { id, "aria-describedby": describedBy, "aria-invalid": invalid || undefined, required: field.required };
   switch (field.widget) {
     case "checkbox":
       return <Input {...common} type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />;
@@ -71,7 +72,7 @@ export function ResourceCreateForm({ metadata, locale, onCreated }: {
       const field = metadata.fields[name];
       if (!field || field.read_only || field.generated) return null;
       const fieldError = fieldErrors[name];
-      return <Field key={name} label={field.label} help={field.help} {...(fieldError ? { error: fieldError } : {})} {...(field.required === undefined ? {} : { required: field.required })}>{({ id, describedBy }) => <FieldControl field={field} value={draft[name]} id={id} describedBy={describedBy} locale={locale} onChange={(value) => {
+      return <Field key={name} label={field.label} help={field.help} {...(fieldError ? { error: fieldError } : {})} {...(field.required === undefined ? {} : { required: field.required })}>{({ id, describedBy }) => <FieldControl field={field} value={draft[name]} id={id} describedBy={describedBy} invalid={Boolean(fieldError)} locale={locale} onChange={(value) => {
         setDraft((current) => ({ ...current, [name]: value }));
         if (fieldErrors[name]) setFieldErrors((current) => { const next = { ...current }; delete next[name]; return next; });
       }} />}</Field>;
