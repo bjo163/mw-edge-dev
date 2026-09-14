@@ -4,7 +4,7 @@ Issue #118 uses a repeatable regression baseline rather than a throughput market
 
 ## Workloads
 
-`scripts/performance-baseline.ts` exercises four repository-owned paths on the pinned Node/pnpm toolchain:
+`scripts/performance-baseline.ts` exercises four repository-owned paths on the pinned Node and package-manager toolchain:
 
 - full-profile boot plus metadata materialization and serialization;
 - 200 ORM create/read operations plus a bounded sorted page query;
