@@ -1,4 +1,4 @@
-import type { ResourceMetadata } from "../api";
+import type { ResourceMetadata } from "../api.js";
 
 export type Draft = Record<string, unknown>;
 export type FieldErrors = Record<string, string>;
