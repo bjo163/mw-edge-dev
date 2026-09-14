@@ -39,4 +39,18 @@ export async function seed(context: SeedContext): Promise<void> {
       }
     },
   });
+
+  const units = await readRows(context, "uom.json");
+  applySeed({
+    db: context.router.get("foundation"),
+    componentId: "mw.foundation",
+    seedId: "foundation.reference.uom",
+    version: "1",
+    mode: "reference",
+    payload: units,
+    apply: () => {
+      const store = context.orm.model("foundation.uom");
+      for (const row of units) store.upsertByRef(row);
+    },
+  });
 }
