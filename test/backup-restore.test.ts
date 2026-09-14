@@ -79,6 +79,34 @@ test("restore rejects a tampered backup before creating live database files", as
   }
 });
 
+test("restore rejects a profile mismatch before creating live database files", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mw-edge-restore-profile-mismatch-"));
+  const source = join(root, "source");
+  const backup = join(root, "backup");
+  const restored = join(root, "restored");
+  process.env.MW_BOOTSTRAP_ADMIN_PASSWORD = password;
+
+  try {
+    assert.equal(await loginStatus(source), 200);
+
+    const manifest = await createProfileBackup("standalone-business", source, backup);
+    writeFileSync(
+      join(backup, "manifest.json"),
+      JSON.stringify({ ...manifest, profile: "different-profile" }, null, 2) + "\n",
+      "utf8",
+    );
+
+    await assert.rejects(
+      restoreProfileBackup("standalone-business", backup, restored),
+      /Backup profile mismatch: expected standalone-business, got different-profile/,
+    );
+    assert.equal(existsSync(restored), false);
+  } finally {
+    delete process.env.MW_BOOTSTRAP_ADMIN_PASSWORD;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("backup command snapshots only profile-owned domain databases", async () => {
   const root = mkdtempSync(join(tmpdir(), "mw-edge-backup-command-"));
   const source = join(root, "source");
