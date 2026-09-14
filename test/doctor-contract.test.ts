@@ -199,3 +199,47 @@ test("doctor classifies missing plugin lock as invalid configuration", () => {
     rmSync(isolatedCwd, { recursive: true, force: true });
   }
 });
+
+test("doctor classifies readable but uninitialized profile storage as runtime failure", () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "mw-edge-doctor-uninitialized-"));
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        "scripts/doctor.ts",
+        "--json",
+        "--profile",
+        "standalone-business",
+        "--data-dir",
+        dataDir,
+      ],
+      { cwd: process.cwd(), encoding: "utf8" },
+    );
+
+    assert.equal(result.signal, null, result.stderr);
+    assert.equal(result.status, 4, result.stderr);
+
+    const report = JSON.parse(result.stdout) as DoctorReport;
+    assert.equal(report.ok, false);
+    assert.equal(report.exitCode, 4);
+
+    const profile = report.checks.find((check) => check.id === "configuration.profile");
+    assert.deepEqual(profile?.ok, true);
+
+    const storage = report.checks.find((check) => check.id === "storage.data_dir");
+    assert.deepEqual(storage?.ok, true);
+
+    const integrity = report.checks.find((check) => check.id === "storage.sqlite_integrity");
+    assert.deepEqual(integrity?.ok, false);
+    assert.equal(integrity?.failure, "runtime_failure");
+    assert.equal(
+      integrity?.recovery,
+      "Inspect the reported domain databases and restore or repair corrupted SQLite state before startup.",
+    );
+  } finally {
+    rmSync(dataDir, { recursive: true, force: true });
+  }
+});
