@@ -214,6 +214,11 @@ health="HEALTHY"
 [[ "$p0" -gt 0 ]] && health="BLOCKED"
 checked_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 run_url="${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-$REPO}/actions/runs/${GITHUB_RUN_ID:-0}"
+previous_report=""
+if [[ -n "$health_number" ]]; then
+  previous_report="$(gh issue view "$health_number" --repo "$REPO" --json body --jq '.body // ""' 2>/dev/null || true)"
+fi
+recovery="$(printf '%s' "$previous_report" | .github/scripts/steward-recovery-evidence.sh "$health")"
 
 {
   echo "# MW EDGE AUTOMATION HEALTH"
@@ -225,6 +230,7 @@ run_url="${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-$REPO}/ac
   echo "**Branch state:** \`$branch_state\`  "
   echo "**Findings:** P0=$p0 · P1=$p1  "
   echo "**Steward run:** $run_url"
+  if [[ -n "$recovery" ]]; then echo "**Recovery:** $recovery"; fi
   echo
   echo "## Branch topology"
   echo
