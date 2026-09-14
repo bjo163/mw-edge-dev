@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { SqliteDatabase } from "../src/kernel/database/sqlite.js";
 import { planProfile, projectRoot } from "../src/kernel/plugins/host.js";
 import { verifyPluginLock } from "../src/kernel/plugins/lock.js";
@@ -18,6 +18,18 @@ const backupDir = resolve(value("--output-dir") ?? resolve(dataDir, "backups", s
 
 const sha256File = (path: string): string => createHash("sha256").update(readFileSync(path)).digest("hex");
 const sqlString = (value: string): string => `'${value.replaceAll("'", "''")}'`;
+const assertOwnedDatabaseSource = (source: string, domain: string): void => {
+  const metadata = lstatSync(source);
+  if (metadata.isSymbolicLink()) throw new Error(`Refusing symlinked database for owned domain ${domain}: ${source}`);
+  if (!metadata.isFile()) throw new Error(`Owned domain database is not a regular file for ${domain}: ${source}`);
+
+  const canonicalDataDir = realpathSync(dataDir);
+  const canonicalSource = realpathSync(source);
+  const relativeSource = relative(canonicalDataDir, canonicalSource);
+  if (relativeSource === ".." || relativeSource.startsWith(`..${sep}`) || isAbsolute(relativeSource)) {
+    throw new Error(`Owned domain database escapes data directory for ${domain}: ${source}`);
+  }
+};
 
 const { manifests, ordered } = await planProfile(profile);
 const pluginLock = await verifyPluginLock(projectRoot);
@@ -56,6 +68,7 @@ try {
   for (const domain of domains) {
     const source = resolve(dataDir, `${domain}.db`);
     if (!existsSync(source)) continue;
+    assertOwnedDatabaseSource(source, domain);
 
     const destination = resolve(backupDir, `${domain}.db`);
     const db = new SqliteDatabase(source);
