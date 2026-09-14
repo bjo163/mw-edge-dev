@@ -1,5 +1,44 @@
 # Changelog
 
+## v0.13.0 - 2026-09-14
+
+- merge: promote validated dev changes to main (#462) (9ec52b4)
+- test(architecture): refresh model inventory (#471) (3eccf95)
+- fix(foundation): refresh plugin lock (#470) (84ede5a)
+- feat(isp): add guarded subscriber and PPPoE lifecycles (#469) (a3e938e)
+- feat(inventory): enforce stock movement invariants (#468) (641f58d)
+- feat(procurement): guard purchase order lifecycle (#467) (7a6f3f1)
+- feat(crm): add guarded pipeline lifecycles (#466) (c94bb35)
+- feat(profile): validate component compatibility (#465) (d254587)
+- feat(foundation): add base unit-of-measure reference pack (#464) (b555128)
+- test(kernel): cover model ownership rejection (#463) (15e1af1)
+- test(doctor): cover plugin lock diagnostic (c8a96d8)
+- feat(steward): add governance drift probe (e7eef16)
+- feat(runtime): verify plugin lock in doctor (734fede)
+- feat(web): localize resource grid chrome (0710f5e)
+- test(doctor): cover human recovery output (8a21883)
+- chore(release): promote dev to main (e1c5475)
+- test(steward): guard recovery report wiring (eedb7d5)
+- feat(steward): surface recovery evidence (ac16045)
+- fix(kernel): enforce unambiguous model ownership (6ea869e)
+- fix(web): preserve shell read failure state (4bfb901)
+- test(doctor): cover JSON failure precedence (8f42d0c)
+- feat(steward): record recovery evidence (7d3596a)
+- feat(runtime): classify doctor failures and exit codes (6fb4c04)
+- fix(web): preserve list failure evidence (e9b025d)
+- docs(contracts): record v1 freeze evidence and blockers (7bb20d3)
+- chore(release): promote dev to main (af8f62b)
+- test(steward): guard canonical resolver wiring (087e37c)
+- fix(steward): resolve canonical health issue deterministically (8ca2a9d)
+- feat(runtime): add read-only doctor command (71931e6)
+- fix(web): preserve record read failure evidence (b03c9f1)
+- docs(validation): define declarative validation contract (ad75429)
+- feat(outbox): add retry-safe dispatcher (#460) (91ef283)
+- fix(ui): make renderer formatter import NodeNext-safe (#459) (ccb8cc6)
+- feat(validation): add declarative validator registry (#457) (e8de71a)
+- test(ui): make typed resource renderers deterministic (#456) (3be6f64)
+
+
 ## v0.12.0 - 2026-09-14
 
 - merge: promote validated dev changes to main (#444) (51639a8)
