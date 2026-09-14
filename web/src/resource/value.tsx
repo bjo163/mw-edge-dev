@@ -1,9 +1,19 @@
 import type { ResourceFieldMetadata } from "../api";
-import { formatDateTime, formatNumber, formatReference } from "../i18n/format";
+import { formatDateTime, formatMoney, formatNumber, formatReference } from "../i18n/format";
 import type { Locale } from "../i18n/messages";
 import { StatusBadge } from "../ui/primitives";
 
-export function ResourceValue({ field, value, locale }: { readonly field: ResourceFieldMetadata | undefined; readonly value: unknown; readonly locale: Locale }) {
+export function ResourceValue({
+  field,
+  value,
+  locale,
+  record,
+}: {
+  readonly field: ResourceFieldMetadata | undefined;
+  readonly value: unknown;
+  readonly locale: Locale;
+  readonly record?: Readonly<Record<string, unknown>>;
+}) {
   if (value === null || value === undefined || value === "") return <span className="muted">—</span>;
   if (!field) return <>{typeof value === "object" ? JSON.stringify(value) : String(value)}</>;
 
@@ -11,6 +21,12 @@ export function ResourceValue({ field, value, locale }: { readonly field: Resour
     switch (field.format) {
       case "number":
         return <>{formatNumber(Number(value), locale)}</>;
+      case "money": {
+        const currency = field.currency_field && record ? record[field.currency_field] : undefined;
+        return <>{typeof currency === "string" && currency.length > 0
+          ? formatMoney(Number(value), currency, locale)
+          : formatNumber(Number(value), locale)}</>;
+      }
       case "boolean":
         return <>{Boolean(value) ? (locale === "id" ? "Ya" : "Yes") : (locale === "id" ? "Tidak" : "No")}</>;
       case "datetime":

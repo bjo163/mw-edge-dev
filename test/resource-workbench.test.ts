@@ -7,6 +7,7 @@ import { ModelRegistry } from "../src/kernel/model-registry.js";
 import type { ModelAuthority } from "../src/kernel/types.js";
 import { serializeResourceForm } from "../web/src/resource/form-serialization.js";
 import type { ResourceMetadata as WebResourceMetadata } from "../web/src/api.js";
+import { assertSafeUiMetadata } from "../web/src/ui/metadata-registry.js";
 
 const widgetAllowlist = new Set(["text", "textarea", "number", "checkbox", "select", "datetime", "reference", "relation", "json"]);
 
@@ -48,8 +49,51 @@ test("ResourceMetadata v2 is descriptive, allowlisted, and authority-safe", () =
     assert.ok(metadata.sensitive_fields_hidden.includes("secret"));
     assert.deepEqual(metadata.actions, []);
     for (const field of Object.values(metadata.fields)) assert.ok(widgetAllowlist.has(field.widget), `unexpected widget ${field.widget}`);
+    assert.doesNotThrow(() => assertSafeUiMetadata(metadata));
     if (authority === "REFERENCE") assert.equal(metadata.crud.create, false);
   }
+});
+
+test("renderer registry rejects unknown widget, format, and action descriptors", () => {
+  const base = fixture("CANONICAL", "registry");
+
+  const badWidget = structuredClone(base) as unknown as { fields: Record<string, { widget: string }> };
+  badWidget.fields.name!.widget = "script";
+  assert.throws(() => assertSafeUiMetadata(badWidget), /Unsupported widget key/);
+
+  const badFormat = structuredClone(base) as unknown as { fields: Record<string, { format: string }> };
+  badFormat.fields.name!.format = "html";
+  assert.throws(() => assertSafeUiMetadata(badFormat), /Unsupported format key/);
+
+  const badAction = structuredClone(base) as unknown as { actions: Array<{ id: string; label: string; command: string; kind: string }> };
+  badAction.actions.push({ id: "unsafe", label: "Unsafe", command: "fixture.unsafe", kind: "javascript" });
+  assert.throws(() => assertSafeUiMetadata(badAction), /Unsupported action descriptor/);
+});
+
+test("money metadata binds numeric values to explicit currency references", () => {
+  const registry = new ModelRegistry();
+  registry.register({
+    name: "fixture.money",
+    domain: "fixture",
+    component: "mw.fixture",
+    authority: "CANONICAL",
+    fields: {
+      money_ref: { type: "String", required: true, unique: true },
+      total: { type: "Decimal" },
+      currency: { type: "Reference", ref_kind: "cross_domain:foundation.currency" },
+      unit_price: { type: "Decimal" },
+      unit_price_currency: { type: "Reference", ref_kind: "cross_domain:foundation.currency" },
+      quantity: { type: "Decimal" },
+    },
+  }, "mw.fixture");
+  const metadata = resourceMetadata(registry.get("fixture.money"));
+  assert.equal(metadata.fields.total?.format, "money");
+  assert.equal(metadata.fields.total?.currency_field, "currency");
+  assert.equal(metadata.fields.unit_price?.format, "money");
+  assert.equal(metadata.fields.unit_price?.currency_field, "unit_price_currency");
+  assert.equal(metadata.fields.quantity?.format, "number");
+  assert.equal(metadata.fields.quantity?.currency_field, null);
+  assert.doesNotThrow(() => assertSafeUiMetadata(metadata));
 });
 
 test("generic form serialization is typed and fails closed for unsupported editors", () => {
