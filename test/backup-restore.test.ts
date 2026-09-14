@@ -53,6 +53,32 @@ test("profile backup restores checksummed databases and standalone login", async
   }
 });
 
+test("restore rejects a tampered backup before creating live database files", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mw-edge-restore-preflight-"));
+  const source = join(root, "source");
+  const backup = join(root, "backup");
+  const restored = join(root, "restored");
+  process.env.MW_BOOTSTRAP_ADMIN_PASSWORD = password;
+
+  try {
+    assert.equal(await loginStatus(source), 200);
+
+    const manifest = await createProfileBackup("standalone-business", source, backup);
+    const first = manifest.files[0];
+    assert.ok(first);
+    writeFileSync(join(backup, first.file), "tampered-backup", "utf8");
+
+    await assert.rejects(
+      restoreProfileBackup("standalone-business", backup, restored),
+      /Backup checksum mismatch/,
+    );
+    assert.equal(existsSync(restored), false);
+  } finally {
+    delete process.env.MW_BOOTSTRAP_ADMIN_PASSWORD;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("backup command snapshots only profile-owned domain databases", async () => {
   const root = mkdtempSync(join(tmpdir(), "mw-edge-backup-command-"));
   const source = join(root, "source");
