@@ -102,6 +102,7 @@ export type UiWidgetKey =
 export type UiFormatKey =
   | "text"
   | "number"
+  | "money"
   | "boolean"
   | "datetime"
   | "status"
@@ -114,6 +115,7 @@ export interface ResourceFieldMetadata extends FieldDefinition {
   readonly placeholder: string | null;
   readonly widget: UiWidgetKey;
   readonly format: UiFormatKey;
+  readonly currency_field: string | null;
   readonly read_only: boolean;
   readonly generated: boolean;
   readonly sortable: boolean;
