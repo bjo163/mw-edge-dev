@@ -63,11 +63,13 @@ test("ORM comparison operators are parameterized, bounded and deterministic", as
     );
     assert.equal(product.find({ comparisons: [{ field: "id", op: "gt", value: 1 }] }).length, 2);
     assert.equal(product.count({}, [{ field: "name", op: "notIn", value: ["Alpha"] }]), 2);
-
+    assert.equal(
+      product.find({ comparisons: [{ field: "name", op: "eq", value: "Alpha' OR 1=1 --" }] }).length,
+      0,
+    );
     assert.throws(
-      () => product.find({ comparisons: [{ field: "name", op: "eq", value: "Alpha' OR 1=1 --" }] }),
-      undefined,
-      "parameterized attacker-shaped values must be treated as data, not syntax",
+      () => product.find({ comparisons: [{ field: "name", op: "in", value: [] }] }),
+      /requires at least one value/i,
     );
   } finally {
     env.close();
