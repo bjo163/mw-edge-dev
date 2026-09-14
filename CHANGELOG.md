@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.0 - 2026-09-14
+
+- chore: sync dev into main (420cca5)
+- feat(schema): support composite unique indexes (a6d0a1f)
+- feat(web): distinguish resource loading and empty states (dc18a4b)
+- test(contracts): pin inventoried contract set (d0bc578)
+
+
 ## v0.8.0 - 2026-09-14
 
 - chore(integration): promote dev to main (#427) (7b760ae)
