@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { boot } from "../src/index.js";
 import { COMPONENTS } from "../src/kernel/plugins/registry.js";
 import { validateManifest } from "../src/kernel/plugins/manifest.js";
 import { resolveComponents } from "../src/kernel/plugins/resolver.js";
@@ -41,4 +44,26 @@ test("lifecycle is monotonic and fail-closed", () => {
   for (const state of ["validated","resolved","staged","migrated","active"] as const) lifecycle.transition("mw.example", state);
   assert.equal(lifecycle.get("mw.example"), "active");
   assert.throws(() => lifecycle.transition("mw.example", "staged"));
+});
+
+test("disabling an addon retains owned data and re-enable restores access", async () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "mw-edge-plugin-disable-"));
+  try {
+    const enabled = await boot({ profile: "example", dataDir });
+    enabled.orm.model("example.item").create({ item_ref: "item-1", name: "Persistent Item" });
+    enabled.orm.model("example.note").create({ note_ref: "note-1", item_ref: "item-1", body: "Retained note" });
+    enabled.close();
+
+    const disabled = await boot({ profile: "example-base", dataDir });
+    assert.equal(disabled.ordered.includes("mw.example.note"), false);
+    assert.throws(() => disabled.orm.model("example.note"), /unknown model/i);
+    assert.equal(disabled.orm.model("example.item").get("item-1")?.name, "Persistent Item");
+    disabled.close();
+
+    const reenabled = await boot({ profile: "example", dataDir });
+    assert.equal(reenabled.orm.model("example.note").get("note-1")?.body, "Retained note");
+    reenabled.close();
+  } finally {
+    rmSync(dataDir, { recursive: true, force: true });
+  }
 });
