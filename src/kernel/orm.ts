@@ -5,7 +5,7 @@ import type { DbRow, FieldDefinition, RecordValue } from "./types.js";
 import type { RegisteredModel, ModelRegistry } from "./model-registry.js";
 import type { DomainDatabaseRouter } from "./database/router.js";
 import type { SqliteDatabase } from "./database/sqlite.js";
-import { compileComparisonFilters, type ComparisonFilter } from "./query-filter.js";
+import { compileBooleanFilterGroup, compileComparisonFilters, type BooleanFilterGroup, type ComparisonFilter } from "./query-filter.js";
 import { MwError } from "./errors.js";
 
 export type InputRecord = Record<string, RecordValue | undefined>;
@@ -123,11 +123,12 @@ export class ModelStore {
   find(options: {
     readonly filters?: Readonly<Record<string, RecordValue>>;
     readonly comparisons?: readonly ComparisonFilter[];
+    readonly filterGroup?: BooleanFilterGroup;
     readonly limit?: number;
     readonly offset?: number;
     readonly orderBy?: string;
   } = {}): readonly OutputRecord[] {
-    const { filters = {}, comparisons = [], limit = 50, offset = 0, orderBy } = options;
+    const { filters = {}, comparisons = [], filterGroup, limit = 50, offset = 0, orderBy } = options;
     const clauses: string[] = [];
     const params: SQLInputValue[] = [];
 
@@ -141,6 +142,11 @@ export class ModelStore {
     const compiled = compileComparisonFilters(this.model.fields, comparisons);
     clauses.push(...compiled.clauses);
     params.push(...compiled.params);
+    if (filterGroup) {
+      const grouped = compileBooleanFilterGroup(this.model.fields, filterGroup);
+      clauses.push(grouped.clause);
+      params.push(...grouped.params);
+    }
 
     let order = "id ASC";
     if (orderBy) {
@@ -168,7 +174,7 @@ export class ModelStore {
     return this.find({ ...options, limit: 1 })[0];
   }
 
-  count(filters: Readonly<Record<string, RecordValue>> = {}, comparisons: readonly ComparisonFilter[] = []): number {
+  count(filters: Readonly<Record<string, RecordValue>> = {}, comparisons: readonly ComparisonFilter[] = [], filterGroup?: BooleanFilterGroup): number {
     const clauses: string[] = [];
     const params: SQLInputValue[] = [];
     for (const [name, value] of Object.entries(filters)) {
@@ -180,6 +186,11 @@ export class ModelStore {
     const compiled = compileComparisonFilters(this.model.fields, comparisons);
     clauses.push(...compiled.clauses);
     params.push(...compiled.params);
+    if (filterGroup) {
+      const grouped = compileBooleanFilterGroup(this.model.fields, filterGroup);
+      clauses.push(grouped.clause);
+      params.push(...grouped.params);
+    }
     const where = clauses.length ? ` WHERE ${clauses.join(" AND ")}` : "";
     const row = this.db.get<{ count: number | bigint }>(`SELECT COUNT(*) AS count FROM ${q(this.table)}${where}`, params);
     return Number(row?.count ?? 0);

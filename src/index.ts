@@ -7,11 +7,11 @@ export { QueryRegistry } from "./kernel/queries.js";
 export { applySeeds, resolveSeedOrder, seedKey } from "./kernel/seeds/dependency.js";
 export { applyReferenceSeedUpgrade } from "./kernel/seeds/reference-upgrade.js";
 export type { ReferenceSeedUpgradeInput, ReferenceSeedUpgradeResult } from "./kernel/seeds/reference-upgrade.js";
-export { compileComparisonFilters } from "./kernel/query-filter.js";
+export { compileBooleanFilterGroup, compileComparisonFilters } from "./kernel/query-filter.js";
 export { ReferenceResolverRegistry } from "./kernel/references.js";
 export type { ReferenceResolution, ReferenceResolveRequest, ReferenceResolveContext, ReferenceResolver } from "./kernel/references.js";
 export type { SeedPlan } from "./kernel/seeds/dependency.js";
-export type { ComparisonFilter, ComparisonOperator } from "./kernel/query-filter.js";
+export type { BooleanFilterGroup, BooleanOperator, ComparisonFilter, ComparisonOperator, QueryFilterNode } from "./kernel/query-filter.js";
 export type {
   CommandIdempotency,
   CommandInput,
