@@ -44,6 +44,22 @@ run_case recovered HEALTHY '[
   {"status":"completed","conclusion":"success","url":"u2","createdAt":"2026-09-14T03:00:00Z","event":"schedule"}
 ]'
 
+run_case recovered_with_skipped HEALTHY '[
+  {"status":"completed","conclusion":"failure","url":"u4","createdAt":"2026-09-14T01:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"failure","url":"u5","createdAt":"2026-09-14T00:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"success","url":"u1","createdAt":"2026-09-14T04:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"skipped","url":"u2","createdAt":"2026-09-14T03:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"success","url":"u3","createdAt":"2026-09-14T02:00:00Z","event":"schedule"}
+]'
+
+run_case recovered_with_neutral HEALTHY '[
+  {"status":"completed","conclusion":"failure","url":"u4","createdAt":"2026-09-14T01:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"failure","url":"u5","createdAt":"2026-09-14T00:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"success","url":"u1","createdAt":"2026-09-14T04:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"neutral","url":"u2","createdAt":"2026-09-14T03:00:00Z","event":"schedule"},
+  {"status":"completed","conclusion":"success","url":"u3","createdAt":"2026-09-14T02:00:00Z","event":"schedule"}
+]'
+
 run_case ignores_manual HEALTHY '[
   {"status":"completed","conclusion":"failure","url":"u1","createdAt":"2026-09-14T04:00:00Z","event":"workflow_dispatch"},
   {"status":"completed","conclusion":"success","url":"u2","createdAt":"2026-09-14T03:00:00Z","event":"schedule"},
