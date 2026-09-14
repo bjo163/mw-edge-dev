@@ -34,6 +34,16 @@ const EXPECTED_PUBLIC_CONTRACT_IDS = [
   "sqlite-adapter.v1",
 ] as const;
 
+const V1_FROZEN_EXTENSION_CONTRACT_IDS = [
+  "addon-manifest.v1",
+  "commands.v1",
+  "extension-registry.v1",
+  "plugin-manifest.v1",
+  "queries.v1",
+  "resource-metadata.v1",
+  "sqlite-adapter.v1",
+] as const;
+
 function assertRepositoryPath(path: string, label: string): void {
   assert.ok(path.length > 0, `${label} must not be empty`);
   assert.equal(isAbsolute(path), false, `${label} must be repository-relative: ${path}`);
@@ -88,6 +98,19 @@ test("public contract catalog is machine-auditable and points at evidence", () =
     catalog.contracts.map((entry) => entry.id).sort(),
     [...EXPECTED_PUBLIC_CONTRACT_IDS],
     "public contract inventory changed; review the expected contract set deliberately",
+  );
+  assert.deepEqual(
+    catalog.contracts
+      .filter((entry) => entry.stability === "stable")
+      .map((entry) => entry.id)
+      .sort(),
+    [...V1_FROZEN_EXTENSION_CONTRACT_IDS],
+    "V1 frozen extension contract set changed; use explicit compatibility policy",
+  );
+  assert.equal(
+    catalog.contracts.find((entry) => entry.id === "d1-adapter.experimental")?.stability,
+    "experimental",
+    "D1 must remain outside the V1 stable contract promise until explicitly promoted",
   );
 
   const ids = new Set<string>();
