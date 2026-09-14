@@ -1,3 +1,7 @@
+import { assertSafeUiMetadata, type UiActionKind, type UiFormatKey, type UiWidgetKey } from "./ui/metadata-registry.js";
+
+export type { UiActionKind, UiFormatKey, UiWidgetKey } from "./ui/metadata-registry.js";
+
 export interface Principal {
   readonly principal_ref: string;
   readonly username: string;
@@ -5,9 +9,6 @@ export interface Principal {
   readonly is_superuser: boolean;
   readonly must_rotate_password: boolean;
 }
-
-export type UiWidgetKey = "text" | "textarea" | "number" | "checkbox" | "select" | "datetime" | "reference" | "relation" | "json";
-export type UiFormatKey = "text" | "number" | "boolean" | "datetime" | "status" | "reference" | "json";
 
 export interface ResourceFieldMetadata {
   readonly type: string;
@@ -21,6 +22,7 @@ export interface ResourceFieldMetadata {
   readonly placeholder: string | null;
   readonly widget: UiWidgetKey;
   readonly format: UiFormatKey;
+  readonly currency_field: string | null;
   readonly read_only: boolean;
   readonly generated: boolean;
   readonly sortable: boolean;
@@ -59,7 +61,7 @@ export interface ResourceMetadata {
     readonly detail: { readonly sections: readonly ResourceSectionMetadata[] };
     readonly form: { readonly sections: readonly ResourceSectionMetadata[] };
   };
-  readonly actions: readonly { readonly id: string; readonly label: string; readonly command: string; readonly kind: string }[];
+  readonly actions: readonly { readonly id: string; readonly label: string; readonly command: string; readonly kind: UiActionKind }[];
 }
 
 export interface AppMetadata {
@@ -153,8 +155,11 @@ function formatFor(name: string, type: string): UiFormatKey {
   return "text";
 }
 
-function normalizeResource(resource: ResourceMetadata | LegacyResource): ResourceMetadata {
-  if ("metadata_version" in resource && resource.metadata_version === "2") return resource;
+export function normalizeResource(resource: ResourceMetadata | LegacyResource): ResourceMetadata {
+  if ("metadata_version" in resource && resource.metadata_version === "2") {
+    assertSafeUiMetadata(resource);
+    return resource;
+  }
 
   const visible = Object.keys(resource.fields);
   const recordKey = visible.find((name) => name.endsWith("_ref")) ?? "id";
@@ -171,7 +176,8 @@ function normalizeResource(resource: ResourceMetadata | LegacyResource): Resourc
       placeholder: null,
       widget: widgetFor(field.type),
       format: formatFor(name, field.type),
-      read_only: resource.authority === "REFERENCE" || generated || field.type === "Relation",
+      currency_field: null,
+      read_only: resource.authority === "REFERENCE" || generated || field.type === "Relation" || field.type === "Json",
       generated,
       sortable,
       filterable: sortable,
