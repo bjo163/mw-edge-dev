@@ -119,5 +119,29 @@ export function App() {
     content = <EmptyState title={message(locale, "resource.select")} description="Choose a resource from the navigation to begin." />;
   }
 
-  return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).sort((a, b) => a.navigation.order - b.navigation.order || a.label.localeCompare(b.label)).map((item) => <Button className={resource?.resource_id === item.resource_id ? "active" : ""} key={item.resource_id} onClick={() => navigate(`${resourcePath(item.route_key)}${location.search}`)}>{item.label}</Button>)}</div>)}<Button onClick={async () => { await api.logout(); location.reload(); }}>{message(locale, "nav.logout")}</Button></aside><main ref={contentRef} tabIndex={-1}>{content}</main></div>;
+  return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).sort((a, b) => a.navigation.order - b.navigation.order || a.label.localeCompare(b.label)).map((item) => {
+    const path = `${resourcePath(item.route_key)}${location.search}`;
+    const active = resource?.resource_id === item.resource_id;
+    return <a
+      key={item.resource_id}
+      href={path}
+      aria-current={active ? "page" : undefined}
+      onClick={(event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        navigate(path);
+      }}
+      style={{
+        display: "block",
+        width: "100%",
+        textAlign: "left",
+        padding: "var(--mw-space-2) var(--mw-space-3)",
+        border: "1px solid transparent",
+        borderRadius: "var(--mw-radius-sm)",
+        background: active ? "var(--mw-color-action)" : "transparent",
+        color: "var(--mw-color-text-strong)",
+        textDecoration: "none",
+      }}
+    >{item.label}</a>;
+  })}</div>)}<Button onClick={async () => { await api.logout(); location.reload(); }}>{message(locale, "nav.logout")}</Button></aside><main ref={contentRef} tabIndex={-1}>{content}</main></div>;
 }
