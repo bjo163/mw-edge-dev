@@ -81,3 +81,28 @@ test("documented API bind inputs stay tied to server defaults", () => {
   assert.ok(docs.includes("`MW_EDGE_HOST`"), "environment contract must classify MW_EDGE_HOST");
   assert.ok(docs.includes("server defaults to `127.0.0.1`"), "docs must describe MW_EDGE_HOST default");
 });
+
+test("documented runtime selection inputs stay tied to server boot", () => {
+  const server = read("src/server.ts");
+  const docs = read("docs/reference/environment-contract.md");
+
+  assert.match(
+    server,
+    /const profile = process\.env\.MW_PROFILE \?\? "standalone-business"/,
+    "server profile selection must remain explicitly environment-controlled",
+  );
+  assert.match(
+    server,
+    /const dataDir = process\.env\.MW_DATA_DIR \? resolve\(process\.env\.MW_DATA_DIR\) : undefined/,
+    "server data directory must remain explicitly environment-controlled",
+  );
+  assert.match(
+    server,
+    /await boot\(\{ profile, \.\.\.\(dataDir \? \{ dataDir \} : \{\}\) \}\)/,
+    "resolved runtime selection inputs must be passed into boot",
+  );
+  assert.ok(docs.includes("`MW_PROFILE`"), "environment contract must classify MW_PROFILE");
+  assert.ok(docs.includes("default to `standalone-business`"), "docs must describe the server profile default");
+  assert.ok(docs.includes("`MW_DATA_DIR`"), "environment contract must classify MW_DATA_DIR");
+  assert.ok(docs.includes("Overrides the persistent data directory"), "docs must describe MW_DATA_DIR semantics");
+});
