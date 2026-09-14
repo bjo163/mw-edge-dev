@@ -48,3 +48,16 @@ test("environment contract stays aligned with package and CI declarations", () =
   assert.ok(pkg.scripts.readiness, "package.json must expose the readiness script");
   assert.ok(docs.includes("`pnpm readiness` is the canonical aggregate gate used by CI"));
 });
+
+test("documented runtime security inputs stay tied to production behavior", () => {
+  const http = read("src/http/app.ts");
+  const docs = read("docs/reference/environment-contract.md");
+
+  assert.match(
+    http,
+    /secure:\s*process\.env\.MW_COOKIE_SECURE\s*===\s*"1"/,
+    "HTTP session cookie security must remain explicitly environment-controlled",
+  );
+  assert.ok(docs.includes("`MW_COOKIE_SECURE`"), "environment contract must classify MW_COOKIE_SECURE");
+  assert.ok(docs.includes("Set to `1` to mark the session cookie `Secure`"), "docs must describe MW_COOKIE_SECURE semantics");
+});
