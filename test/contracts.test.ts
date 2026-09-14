@@ -13,6 +13,27 @@ const EXPECTED_STABILITY_VALUES = [
   "deprecated",
 ] as const;
 
+const EXPECTED_PUBLIC_CONTRACT_IDS = [
+  "addon-manifest.v1",
+  "commands.v1",
+  "d1-adapter.experimental",
+  "extension-registry.v1",
+  "http.admin-resource",
+  "http.auth",
+  "http.bootstrap",
+  "http.health",
+  "http.metadata",
+  "migration-baseline.v1",
+  "operator-cli.v1",
+  "plugin-manifest.v1",
+  "profile.v1",
+  "queries.v1",
+  "resource-metadata.v1",
+  "runtime-env.v1",
+  "seed-runner.v1",
+  "sqlite-adapter.v1",
+] as const;
+
 function assertRepositoryPath(path: string, label: string): void {
   assert.ok(path.length > 0, `${label} must not be empty`);
   assert.equal(isAbsolute(path), false, `${label} must be repository-relative: ${path}`);
@@ -63,6 +84,11 @@ test("public contract catalog is machine-auditable and points at evidence", () =
   assert.deepEqual(catalog.stability_values, EXPECTED_STABILITY_VALUES);
   assert.equal(new Set(catalog.stability_values).size, catalog.stability_values.length);
   assert.ok(catalog.contracts.length > 0);
+  assert.deepEqual(
+    catalog.contracts.map((entry) => entry.id).sort(),
+    [...EXPECTED_PUBLIC_CONTRACT_IDS],
+    "public contract inventory changed; review the expected contract set deliberately",
+  );
 
   const ids = new Set<string>();
   for (const entry of catalog.contracts) {
