@@ -1,5 +1,42 @@
 # Changelog
 
+## v0.10.0 - 2026-09-14
+
+- Merge dev into main: metadata workbench v2 (145d069)
+- fix(ui): make serialization import NodeNext-safe (2b20175)
+- test(ui): import non-JSX form serialization contract (5738a19)
+- refactor(ui): consume non-JSX form serialization (0a137ad)
+- refactor(ui): isolate form serialization contract (2aa58c7)
+- ci: cancel obsolete dev and PR validation runs (8507bf4)
+- test(ui): prove metadata v2 query detail and form contracts (d995471)
+- feat(steward): wire plugin lock findings into canonical health (21c0ad4)
+- feat(ui): style metadata workbench surfaces (9d21173)
+- fix(ui): omit undefined Field props under exact optional typing (99670b8)
+- feat(web): compose list detail and form workbench (1185c62)
+- feat(web): add metadata-driven record detail floorplan (2d733d4)
+- feat(web): add URL-backed bounded resource grid (076106a)
+- feat(web): add metadata-driven typed form engine (a06fb30)
+- feat(web): add typed resource value renderer (e18af2d)
+- fix(metadata): fail closed for generic relation and json editing (7375daa)
+- feat(ui): complete accessible workbench primitives (e1bbf4c)
+- feat(web): consume ResourceMetadata v2 with v1 fallback (c8077b1)
+- ci(perf): retain baseline and SQLite soak evidence (2182e83)
+- chore(deps): bump zizmor workflow audit action (d1d2aaa)
+- chore(deps): bump CodeQL SARIF uploader (c647188)
+- feat(api): expose bounded resource query and detail contracts (a1477d3)
+- chore(deps): bump checkout in branch sync (c1d4ebc)
+- chore(deps): bump checkout in dev PR automation (bd8babc)
+- chore(deps): refresh checkout and CodeQL actions (dfdb7ba)
+- chore(deps): bump zizmor workflow audit action (cf073f8)
+- chore(deps): bump CodeQL SARIF uploader (7465495)
+- feat(metadata): materialize safe UI intent in v2 (15da8fb)
+- chore(deps): bump checkout in branch sync (4e5d7d3)
+- chore(deps): bump checkout in dev PR automation (58466ff)
+- chore(deps): refresh checkout and CodeQL actions (74b0d33)
+- feat(metadata): define safe ResourceMetadata v2 contract (d356f3a)
+- fix(security): add dependency audit fallback (fbdd320)
+
+
 ## v0.9.0 - 2026-09-14
 
 - chore: sync dev into main (420cca5)
