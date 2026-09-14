@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.8.0 - 2026-09-14
+
+- chore(integration): promote dev to main (#427) (7b760ae)
+- feat(steward): emit freshness findings (ec91bb2)
+- fix(schema): reject duplicate declarative index ids (2ed9622)
+- feat(web): move focus on route transitions (8bdfb84)
+- test(contracts): validate evidence path classes (6309be6)
+- feat(steward): emit canonical plugin lock findings (b4f6816)
+- feat(schema): materialize owned indexes deterministically (000b5a9)
+- feat(web): add safe read retry evidence (45d9e3f)
+- docs(contracts): document evidence gap review policy (878a985)
+
+
 ## v0.7.0 - 2026-09-13
 
 - chore: sync dev into main (#419) (084aecf)
