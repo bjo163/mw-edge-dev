@@ -200,7 +200,7 @@ export class ModelStore {
     }
     if (optimistic) {
       const expectedVersion = options.expectedVersion;
-      if (!Number.isSafeInteger(expectedVersion) || Number(expectedVersion) < 1) {
+      if (typeof expectedVersion !== "number" || !Number.isSafeInteger(expectedVersion) || expectedVersion < 1) {
         throw new MwError(
           "CONCURRENCY_VERSION_REQUIRED",
           `Expected record_version is required for ${this.model.name}`,
@@ -208,9 +208,15 @@ export class ModelStore {
         );
       }
       if (names.length === 0) return this.get(ref);
+      const params: SQLInputValue[] = [
+        ...names.map((name) => values[name] ?? null),
+        nowIso(),
+        ref,
+        expectedVersion,
+      ];
       const result = this.db.run(
         `UPDATE ${q(this.table)} SET ${names.map((name) => `${q(name)}=?`).join(",")}, updated_at=?, record_version=record_version+1 WHERE ${q(selector)}=? AND record_version=?`,
-        [...names.map((name) => values[name] ?? null), nowIso(), ref, expectedVersion],
+        params,
       );
       if (Number(result.changes) === 0) {
         const current = this.get(ref);
