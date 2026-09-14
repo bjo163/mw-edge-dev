@@ -36,7 +36,7 @@ export function ResourceDetail({ metadata, record, locale, onBack }: {
       setItem(result.item);
     } catch (failure) {
       setError({
-        message: failure instanceof Error ? failure.message : "Load failed",
+        message: failure instanceof Error ? failure.message : message(locale, "state.error"),
         status: failure instanceof ApiError ? failure.status : undefined,
         requestId: failure instanceof ApiError ? failure.requestId : undefined,
         retryable: failure instanceof ApiError && failure.retryable,
@@ -46,11 +46,11 @@ export function ResourceDetail({ metadata, record, locale, onBack }: {
 
   useEffect(() => { void load(); }, [metadata.resource_id, record]);
 
-  if (loading) return <LoadingState />;
-  if (error.status === 403) return <EmptyState title="Permission denied" description="Your account does not have permission to read this record." action={<><Button onClick={onBack}>Back to {metadata.labels.plural}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></>} />;
-  if (error.status === 404) return <EmptyState title="Record not found" description="The requested record does not exist or is no longer available." action={<><Button onClick={onBack}>Back to {metadata.labels.plural}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></>} />;
+  if (loading) return <LoadingState label={message(locale, "app.loading")} />;
+  if (error.status === 403) return <EmptyState title={message(locale, "state.permissionDenied.title")} description={message(locale, "state.permissionDenied.description")} action={<><Button onClick={onBack}>{message(locale, "action.back")}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></>} />;
+  if (error.status === 404) return <EmptyState title={message(locale, "state.unavailable.title")} description={message(locale, "state.unavailable.description")} action={<><Button onClick={onBack}>{message(locale, "action.back")}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></>} />;
   if (error.message) return <InlineError><p>{error.message}</p>{error.retryable && <Button onClick={() => void load()}>{message(locale, "action.retry")}</Button>}<Button onClick={onBack}>{message(locale, "action.back")}</Button><RequestEvidence locale={locale} requestId={error.requestId} /></InlineError>;
-  if (!item) return <EmptyState title="Record unavailable" description="No readable record was returned." action={<Button onClick={onBack}>{message(locale, "action.back")}</Button>} />;
+  if (!item) return <EmptyState title={message(locale, "state.unavailable.title")} description={message(locale, "state.unavailable.description")} action={<Button onClick={onBack}>{message(locale, "action.back")}</Button>} />;
 
   const identity = item[metadata.record_key] ?? item.id ?? record;
   const primaryValue = metadata.display.primary_field ? item[metadata.display.primary_field] : identity;
