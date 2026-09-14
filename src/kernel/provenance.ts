@@ -28,7 +28,10 @@ function semanticRef<Kind extends string>(kind: Kind, value: string): SemanticRe
   if (typeof value !== "string" || value.length === 0 || value.length > 200 || value.trim() !== value) {
     throw new Error(`Invalid ${kind}_ref`);
   }
-  if (/[\\u0000-\\u001f\\u007f]/.test(value)) throw new Error(`Invalid ${kind}_ref`);
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (code < 32 || code === 127) throw new Error(`Invalid ${kind}_ref`);
+  }
   return value as SemanticRef<Kind>;
 }
 
