@@ -3,6 +3,7 @@ import { access } from "node:fs/promises";
 import { resolve } from "node:path";
 import { checkProfileIntegrity } from "../src/kernel/database/integrity.js";
 import { planProfile } from "../src/kernel/plugins/host.js";
+import { verifyPluginLock } from "../src/kernel/plugins/lock.js";
 
 type DiagnosticCategory = "runtime" | "configuration" | "storage";
 type DiagnosticFailure = "missing_prerequisite" | "invalid_configuration" | "runtime_failure";
@@ -71,6 +72,25 @@ try {
     detail: errorMessage(error),
     failure: "invalid_configuration",
     recovery: "Select a valid profile and repair its plugin/component registration.",
+  });
+}
+
+try {
+  const lock = await verifyPluginLock(process.cwd());
+  push({
+    id: "configuration.plugin_lock",
+    category: "configuration",
+    ok: true,
+    detail: `${lock.components.length} components locked`,
+  });
+} catch (error) {
+  push({
+    id: "configuration.plugin_lock",
+    category: "configuration",
+    ok: false,
+    detail: errorMessage(error),
+    failure: "invalid_configuration",
+    recovery: "Run pnpm plugins:lock:write and review the resulting lock diff before startup.",
   });
 }
 
