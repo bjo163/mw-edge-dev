@@ -36,12 +36,12 @@ test("page pagination is deterministic and fails closed when unbounded", async (
   try {
     const items = env.orm.model("example.item");
     for (let index = 1; index <= 5; index += 1) {
-      items.create({ item_ref: `page-${index}`, name: `Page ${index}`, rank: index });
+      items.create({ item_ref: `page-${index}`, name: `Page ${index}`, rank: 100 + index });
     }
 
     const secondPage = items.find({
       select: ["item_ref"],
-      comparisons: [{ field: "rank", op: "gte", value: 1 }],
+      comparisons: [{ field: "rank", op: "gte", value: 101 }],
       sort: [{ field: "rank", direction: "asc" }],
       pagination: { mode: "page", page: 2, pageSize: 2 },
     });
@@ -64,17 +64,17 @@ test("cursor pagination advances by stable internal id and rejects custom sort",
   try {
     const items = env.orm.model("example.item");
     for (let index = 1; index <= 5; index += 1) {
-      items.create({ item_ref: `cursor-${index}`, name: `Cursor ${index}`, rank: index });
+      items.create({ item_ref: `cursor-${index}`, name: `Cursor ${index}`, rank: 100 + index });
     }
 
     const first = items.find({
-      comparisons: [{ field: "rank", op: "gte", value: 1 }],
+      comparisons: [{ field: "rank", op: "gte", value: 101 }],
       pagination: { mode: "cursor", afterId: 0, pageSize: 2 },
     });
     assert.equal(first.length, 2);
     const lastId = Number(first[1]?.id);
     const second = items.find({
-      comparisons: [{ field: "rank", op: "gte", value: 1 }],
+      comparisons: [{ field: "rank", op: "gte", value: 101 }],
       pagination: { mode: "cursor", afterId: lastId, pageSize: 2 },
     });
     assert.deepEqual(second.map((row) => row.item_ref), ["cursor-3", "cursor-4"]);
