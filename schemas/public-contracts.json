@@ -72,7 +72,7 @@
     },
     {
       "id": "commands.v1",
-      "stability": "beta",
+      "stability": "stable",
       "owner": "area:kernel",
       "source": "src/kernel/commands.ts",
       "tests": [
@@ -84,7 +84,7 @@
     },
     {
       "id": "queries.v1",
-      "stability": "beta",
+      "stability": "stable",
       "owner": "area:kernel",
       "source": "src/kernel/queries.ts",
       "tests": [
@@ -96,7 +96,7 @@
     },
     {
       "id": "plugin-manifest.v1",
-      "stability": "beta",
+      "stability": "stable",
       "owner": "area:plugin",
       "source": "schemas/plugin-manifest.schema.json",
       "tests": [
@@ -110,7 +110,7 @@
     },
     {
       "id": "addon-manifest.v1",
-      "stability": "beta",
+      "stability": "stable",
       "owner": "area:plugin",
       "source": "schemas/plugin-manifest.schema.json",
       "tests": [
@@ -137,7 +137,7 @@
     },
     {
       "id": "resource-metadata.v1",
-      "stability": "beta",
+      "stability": "stable",
       "owner": "area:ui",
       "source": "src/kernel/types.ts",
       "tests": [
@@ -149,7 +149,7 @@
     },
     {
       "id": "extension-registry.v1",
-      "stability": "beta",
+      "stability": "stable",
       "owner": "area:plugin",
       "source": "src/kernel/plugins/extensions.ts",
       "tests": [
@@ -186,7 +186,7 @@
     },
     {
       "id": "sqlite-adapter.v1",
-      "stability": "beta",
+      "stability": "stable",
       "owner": "area:db",
       "source": "src/kernel/database/adapter.ts",
       "tests": [
