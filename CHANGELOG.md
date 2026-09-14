@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.12.0 - 2026-09-14
+
+- merge: promote validated dev changes to main (#444) (51639a8)
+- test(outbox): prove domain-local transactional atomicity (#455) (7652dbd)
+- test(sequence): prove collision-safe domain numbering (#454) (552c3be)
+- feat(orm): add bounded boolean query groups (#453) (c9b8a55)
+- feat(security): rate-limit standalone login failures (#452) (f506c8f)
+- fix(orm): narrow optimistic concurrency SQL parameters (#451) (19013b0)
+- feat(orm): add opt-in optimistic concurrency (#450) (e05736f)
+- feat(seed): define forward-only reference-data upgrades (#449) (fcf1890)
+- fix(kernel): correct provenance and reference bounds (#448) (adb3350)
+- feat(provenance): define semantic provenance context (#447) (965e784)
+- feat(reference): add bounded cross-domain resolver service (#446) (2b98922)
+- feat(auth): rotate and revoke standalone sessions (#445) (c6573b2)
+- feat(kernel): add transactional domain sequence engine (c1b9d0a)
+- fix(web): preserve create failure evidence (226fc35)
+- test(environment): cover secure cookie runtime input (ba71fe4)
+- test(steward): expose canonical duplicate evidence (5fab988)
+- test(security): add CSRF and origin regressions (#443) (8ebe192)
+- test(plugin): prove disable retains addon data (#442) (421c127)
+- feat(orm): add comparison query operators (#441) (3dd2e83)
+- feat(db): bind outbox enqueue to domain transaction (2c3c850)
+- feat(seed): add deterministic seed dependency resolver (#440) (bbf6faa)
+- feat(sqlite): define nested transaction policy (#439) (dc2d234)
+- fix(web): preserve context in record hyperlinks (e7a5152)
+- test(environment): detect runtime contract drift (c374d98)
+
+
 ## v0.11.0 - 2026-09-14
 
 - Merge pull request #431 from bjo163/dev (c9cac01)
