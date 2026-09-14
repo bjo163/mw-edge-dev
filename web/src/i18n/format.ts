@@ -1,4 +1,4 @@
-import type { Locale } from "./messages";
+import type { Locale } from "./messages.js";
 
 const localeTag: Readonly<Record<Locale, string>> = {
   en: "en-US",
