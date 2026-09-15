@@ -34,3 +34,8 @@ export function resourcePath(resourceId: string): string {
 export function recordPath(resourceId: string, recordId: string | number): string {
   return `${resourcePath(resourceId)}/${encodeURIComponent(String(recordId))}`;
 }
+
+export function preserveRouteContext(path: string, search: string): string {
+  if (!search) return path;
+  return `${path}${search.startsWith("?") ? search : `?${search}`}`;
+}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readRoute, recordPath, resourcePath } from "./routing";
+import { preserveRouteContext, readRoute, recordPath, resourcePath } from "./routing";
 
 test("readRoute resolves reload-safe canonical routes", () => {
   assert.deepEqual(readRoute("/"), { kind: "home" });
@@ -30,4 +30,10 @@ test("readRoute fails closed for unsupported or malformed paths", () => {
 test("path builders encode canonical resource and record links", () => {
   assert.equal(resourcePath("sales order"), "/resources/sales%20order");
   assert.equal(recordPath("sales order", "SO/001"), "/resources/sales%20order/SO%2F001");
+});
+
+test("preserveRouteContext carries URL work context across route transitions", () => {
+  assert.equal(preserveRouteContext("/resources/customer", "?page=3&filter=active"), "/resources/customer?page=3&filter=active");
+  assert.equal(preserveRouteContext("/resources/customer/42", "page=3"), "/resources/customer/42?page=3");
+  assert.equal(preserveRouteContext("/resources/customer", ""), "/resources/customer");
 });
