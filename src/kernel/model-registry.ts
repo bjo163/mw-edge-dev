@@ -23,7 +23,33 @@ const AUTHORITIES = new Set<ModelAuthority>([
   "LOCAL_ONLY",
 ]);
 
-export type RegisteredModel = ModelDefinition & { readonly owner: string };
+export interface ModelOwnershipMetadata {
+  readonly owner_component: string;
+  readonly authority_class: ModelAuthority;
+  readonly source_of_truth: boolean;
+  readonly mutation_owner: string | null;
+  readonly tenant_scope: "TENANT" | "GLOBAL";
+}
+
+export type RegisteredModel = ModelDefinition & {
+  readonly owner: string;
+  readonly ownership: ModelOwnershipMetadata;
+};
+
+function ownershipMetadata(model: ModelDefinition, owner: string): ModelOwnershipMetadata {
+  const sourceOfTruth = model.authority === "CANONICAL" || model.authority === "REFERENCE" || model.authority === "LOCAL_ONLY";
+  const tenantScoped = Object.values(model.fields).some(
+    (field) => field.type === "Reference" && field.ref_kind === "tenant_scope",
+  );
+
+  return Object.freeze({
+    owner_component: owner,
+    authority_class: model.authority,
+    source_of_truth: sourceOfTruth,
+    mutation_owner: sourceOfTruth ? owner : null,
+    tenant_scope: tenantScoped ? "TENANT" : "GLOBAL",
+  });
+}
 
 export class ModelRegistry {
   readonly #models = new Map<string, RegisteredModel>();
@@ -54,7 +80,10 @@ export class ModelRegistry {
       }
     }
 
-    this.#models.set(model.name, Object.freeze({ ...model, owner }));
+    this.#models.set(
+      model.name,
+      Object.freeze({ ...model, owner, ownership: ownershipMetadata(model, owner) }),
+    );
   }
 
   finalize(): this {
