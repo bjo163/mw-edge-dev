@@ -86,5 +86,5 @@ export function EmptyState({
 }
 
 export function LoadingState({ label = "Loading…" }: { readonly label?: string }) {
-  return <div className="center loading-state" aria-busy="true"><span role="status">{label}</span></div>;
+  return <div className="center loading-state" role="status" aria-live="polite" aria-atomic="true" aria-busy="true">{label}</div>;
 }
