@@ -33,6 +33,8 @@ assert_probe 2 TOOLING "printf 'tsx: command not found\\n' >&2; exit 127"
 assert_finding "" "printf 'plugin lock: ok (2 components)\\n'"
 assert_finding $'P1\tplugin-lock\tPlugin manifest/lock drift detected.\tplugin lock mismatch; changed manifest' \
   "printf 'plugin lock mismatch; changed manifest\\n' >&2; exit 1"
+assert_finding $'P1\tplugin-lock\tPlugin manifest/lock drift detected.\tplugin lock mismatch; changed manifest unexpected field' \
+  "printf 'plugin lock mismatch; changed manifest\\nunexpected\\tfield\\n' >&2; exit 1"
 assert_finding $'P1\tplugin-lock\tPlugin lock verification could not run.\texit=127 tsx: command not found' \
   "printf 'tsx: command not found\\n' >&2; exit 127"
 
