@@ -4,7 +4,7 @@ import { message, resolveLocale, type Locale } from "./i18n/messages";
 import { ResourceDetail } from "./resource/detail";
 import { ResourceCreateForm } from "./resource/form";
 import { ResourceGrid } from "./resource/grid";
-import { readRoute, recordPath, resourcePath, type Route } from "./routing";
+import { preserveRouteContext, readRoute, recordPath, resourcePath, type Route } from "./routing";
 import { Button, EmptyState, InlineError, LoadingState, StatusBadge } from "./ui/primitives";
 
 function Login({ locale, onLogin }: { readonly locale: Locale; readonly onLogin: () => Promise<void> }) {
@@ -58,6 +58,7 @@ export function App() {
     if (`${location.pathname}${location.search}` !== path) history.pushState(null, "", path);
     setRoute(readRoute(location.pathname));
   };
+  const contextualPath = (path: string) => preserveRouteContext(path, location.search);
   const load = async () => {
     setLoading(true);
     setLoadError(undefined);
@@ -103,15 +104,15 @@ export function App() {
   if (!principal) return <Login locale={locale} onLogin={load} />;
   if (principal.must_rotate_password) return <Rotate locale={locale} onDone={load} />;
 
-  const backToResources = <Button onClick={() => navigate("/")}>{message(locale, "action.back")}</Button>;
+  const backToResources = <Button onClick={() => navigate(contextualPath("/"))}>{message(locale, "action.back")}</Button>;
   let content;
   if (route.kind === "resource") {
     content = resource
-      ? <ResourceWorkbench locale={locale} metadata={resource} onOpenRecord={(record) => navigate(`${recordPath(resource.route_key, record)}${location.search}`)} />
+      ? <ResourceWorkbench locale={locale} metadata={resource} onOpenRecord={(record) => navigate(contextualPath(recordPath(resource.route_key, record)))} />
       : <EmptyState title={message(locale, "resource.notFound.title")} description={message(locale, "resource.notFound.description")} action={backToResources} />;
   } else if (route.kind === "record") {
     content = resource
-      ? <ResourceDetail locale={locale} metadata={resource} record={route.recordId} onBack={() => navigate(`${resourcePath(resource.route_key)}${location.search}`)} />
+      ? <ResourceDetail locale={locale} metadata={resource} record={route.recordId} onBack={() => navigate(contextualPath(resourcePath(resource.route_key)))} />
       : <EmptyState title={message(locale, "resource.notFound.title")} description={message(locale, "resource.notFound.description")} action={backToResources} />;
   } else if (route.kind === "not-found") {
     content = <EmptyState title={message(locale, "route.notFound.title")} description={message(locale, "route.notFound.description")} action={backToResources} />;
@@ -120,7 +121,7 @@ export function App() {
   }
 
   return <div className="shell"><aside><div className="brand"><div className="eyebrow">MW EDGE</div><strong>{metadata?.components.length ?? 0} components</strong><small>{metadata?.resources.length ?? 0} resources</small></div>{metadata?.groups.map((group) => <div key={group}><h3>{group}</h3>{metadata.resources.filter((item) => item.navigation.visible && item.navigation.group === group).sort((a, b) => a.navigation.order - b.navigation.order || a.label.localeCompare(b.label)).map((item) => {
-    const path = `${resourcePath(item.route_key)}${location.search}`;
+    const path = contextualPath(resourcePath(item.route_key));
     const active = resource?.resource_id === item.resource_id;
     return <a
       key={item.resource_id}

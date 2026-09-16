@@ -108,7 +108,9 @@ try {
   });
 }
 
-if (checks.find((check) => check.id === "configuration.profile")?.ok) {
+const profileReady = checks.find((check) => check.id === "configuration.profile")?.ok === true;
+const storageReady = checks.find((check) => check.id === "storage.data_dir")?.ok === true;
+if (profileReady && storageReady) {
   try {
     const integrity = await checkProfileIntegrity(profile, dataDir);
     const failedDomains = integrity.domains.filter((domain) => !domain.ok).map((domain) => domain.domain);
