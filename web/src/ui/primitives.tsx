@@ -29,13 +29,13 @@ export function Field({
   readonly help?: string | null;
   readonly error?: string | null;
   readonly required?: boolean;
-  readonly children: (input: { readonly id: string; readonly describedBy: string | undefined; readonly required: boolean }) => ReactNode;
+  readonly children: (input: { readonly id: string; readonly describedBy: string | undefined; readonly required: boolean; readonly invalid: boolean }) => ReactNode;
 }) {
   const id = useId();
   const helpId = `${id}-help`;
   const errorId = `${id}-error`;
   const describedBy = [help ? helpId : undefined, error ? errorId : undefined].filter(Boolean).join(" ") || undefined;
-  return <div className="field"><label htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}</label>{children({ id, describedBy, required: Boolean(required) })}{help && <small id={helpId} className="field-help">{help}</small>}{error && <small id={errorId} className="field-error" role="alert">{error}</small>}</div>;
+  return <div className="field"><label htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}</label>{children({ id, describedBy, required: Boolean(required), invalid: Boolean(error) })}{help && <small id={helpId} className="field-help">{help}</small>}{error && <small id={errorId} className="field-error" role="alert">{error}</small>}</div>;
 }
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
