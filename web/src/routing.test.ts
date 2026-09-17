@@ -36,4 +36,12 @@ test("preserveRouteContext carries URL work context across route transitions", (
   assert.equal(preserveRouteContext("/resources/customer", "?page=3&filter=active"), "/resources/customer?page=3&filter=active");
   assert.equal(preserveRouteContext("/resources/customer/42", "page=3"), "/resources/customer/42?page=3");
   assert.equal(preserveRouteContext("/resources/customer", ""), "/resources/customer");
+  assert.equal(preserveRouteContext("/resources/customer", "?"), "/resources/customer");
+});
+
+test("preserveRouteContext merges target state without losing context or fragments", () => {
+  assert.equal(
+    preserveRouteContext("/resources/customer?page=1&panel=why#evidence", "?page=3&filter=active"),
+    "/resources/customer?page=1&filter=active&panel=why#evidence",
+  );
 });
