@@ -39,8 +39,18 @@ test("model registry rejects ambiguous ownership", () => {
   );
 });
 
-test("model registry accepts one explicit matching owner", () => {
+test("model registry exposes normalized ownership metadata", () => {
   const registry = new ModelRegistry();
   registry.register(model("mw.test"), "mw.test");
-  assert.equal(registry.get("test.owned_record").owner, "mw.test");
+
+  const registered = registry.get("test.owned_record");
+  assert.equal(registered.owner, "mw.test");
+  assert.deepEqual(registered.ownership, {
+    owner_component: "mw.test",
+    authority_class: "CANONICAL",
+    source_of_truth: true,
+    mutation_owner: "mw.test",
+    tenant_scope: "GLOBAL",
+  });
+  assert.equal(Object.isFrozen(registered.ownership), true);
 });

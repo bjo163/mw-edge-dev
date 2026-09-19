@@ -28,8 +28,7 @@ while IFS=$'\t' read -r status conclusion url created; do
         break
       fi
       ;;
-    skipped|neutral)
-      success_streak=0
+    skipped|neutral|cancelled)
       ;;
     *)
       failures=$((failures + 1))

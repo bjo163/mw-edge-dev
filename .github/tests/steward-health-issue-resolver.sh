@@ -23,6 +23,15 @@ assert_contains() {
   printf 'PASS %s\n' "$name"
 }
 
+assert_rejected() {
+  local payload="$1" name="$2"
+  if printf '%s' "$payload" | "$RESOLVER" >/dev/null 2>&1; then
+    printf 'FAIL %s must fail closed\n' "$name" >&2
+    exit 1
+  fi
+  printf 'PASS %s fails closed\n' "$name"
+}
+
 none="$(printf '%s' '[]' | "$RESOLVER")"
 assert_eq $'NONE\t\t\t0\t' "$none" "no canonical issue"
 
@@ -48,6 +57,11 @@ assert_eq $'DUPLICATE\t418\topen\t2\t418,422' "$duplicate" "duplicates select ol
 
 custom="$(printf '%s' '[{"number":7,"state":"open","title":"custom health"}]' | "$RESOLVER" 'custom health')"
 assert_eq $'ONE\t7\topen\t1\t' "$custom" "custom canonical title"
+
+assert_rejected '{"message":"Forbidden"}' "permission-shaped API payload"
+assert_rejected 'not-json' "malformed API payload"
+assert_rejected '[{"number":null,"state":"open","title":"MW EDGE AUTOMATION HEALTH"}]' "canonical issue without numeric identity"
+assert_rejected '[{"number":418,"state":"unknown","title":"MW EDGE AUTOMATION HEALTH"}]' "canonical issue with invalid state"
 
 assert_contains 'steward-health-issue-resolver.sh "$HEALTH_TITLE"' "$STEWARD" "controller delegates canonical selection to resolver"
 assert_contains 'Multiple canonical automation-health issues exist; Steward will update only the oldest issue.' "$STEWARD" "controller reports duplicate canonical issues"

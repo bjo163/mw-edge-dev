@@ -34,3 +34,20 @@ export function resourcePath(resourceId: string): string {
 export function recordPath(resourceId: string, recordId: string | number): string {
   return `${resourcePath(resourceId)}/${encodeURIComponent(String(recordId))}`;
 }
+
+export function preserveRouteContext(path: string, search: string): string {
+  if (!search || search === "?") return path;
+
+  const hashIndex = path.indexOf("#");
+  const hash = hashIndex >= 0 ? path.slice(hashIndex) : "";
+  const target = hashIndex >= 0 ? path.slice(0, hashIndex) : path;
+  const queryIndex = target.indexOf("?");
+  const pathname = queryIndex >= 0 ? target.slice(0, queryIndex) : target;
+  const targetSearch = queryIndex >= 0 ? target.slice(queryIndex + 1) : "";
+  const context = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+  const targetParams = new URLSearchParams(targetSearch);
+
+  for (const [key, value] of targetParams) context.set(key, value);
+  const merged = context.toString();
+  return `${pathname}${merged ? `?${merged}` : ""}${hash}`;
+}
