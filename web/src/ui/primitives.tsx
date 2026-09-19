@@ -81,6 +81,23 @@ export function ErrorSummary({ title = "Please review the errors", errors }: { r
   return <section className="error error-summary" role="alert"><strong>{title}</strong><ul>{errors.map((error, index) => <li key={`${index}-${error}`}>{error}</li>)}</ul></section>;
 }
 
+export function ErrorState({
+  title,
+  description,
+  requestId,
+  onRetry,
+  retryLabel = "Try again",
+}: {
+  readonly title: string;
+  readonly description: string;
+  readonly requestId?: string | null;
+  readonly onRetry?: (() => void) | null;
+  readonly retryLabel?: string;
+}) {
+  const id = useId();
+  return <section className="panel error" role="alert" aria-labelledby={id}><h2 id={id}>{title}</h2><p>{description}</p>{requestId && <p><small>Request ID: <code>{requestId}</code></small></p>}{onRetry && <Button onClick={onRetry}>{retryLabel}</Button>}</section>;
+}
+
 export function EmptyState({
   title,
   description,
