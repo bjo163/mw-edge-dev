@@ -57,7 +57,7 @@ test("doctor human output names failing checks and recovery actions", () => {
   assert.match(result.stdout, /recovery: Select a valid profile and repair its plugin\/component registration\./);
   assert.match(result.stdout, /^PASS configuration\.plugin_lock: \d+ components locked$/m);
   assert.match(result.stdout, /^FAIL storage\.data_dir:/m);
-  assert.match(result.stdout, /recovery: Create or mount the configured data directory and grant the runtime read access\./);
+  assert.match(result.stdout, /recovery: Create or mount the configured data directory and grant the runtime read\/write access\./);
   assert.doesNotMatch(result.stdout, /storage\.sqlite_integrity/);
 });
 
