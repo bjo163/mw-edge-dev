@@ -95,8 +95,8 @@ try {
 }
 
 try {
-  await access(dataDir, constants.R_OK);
-  push({ id: "storage.data_dir", category: "storage", ok: true, detail: "readable" });
+  await access(dataDir, constants.R_OK | constants.W_OK);
+  push({ id: "storage.data_dir", category: "storage", ok: true, detail: "readable and writable" });
 } catch (error) {
   push({
     id: "storage.data_dir",
@@ -104,7 +104,7 @@ try {
     ok: false,
     detail: errorMessage(error),
     failure: "missing_prerequisite",
-    recovery: "Create or mount the configured data directory and grant the runtime read access.",
+    recovery: "Create or mount the configured data directory and grant the runtime read/write access.",
   });
 }
 
