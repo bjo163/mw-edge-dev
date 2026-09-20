@@ -31,6 +31,7 @@ const EXIT_OK = 0;
 const EXIT_MISSING_PREREQUISITE = 2;
 const EXIT_INVALID_CONFIGURATION = 3;
 const EXIT_RUNTIME_FAILURE = 4;
+const MINIMUM_NODE_VERSION = [22, 13, 0] as const;
 
 const args = process.argv.slice(2);
 const value = (flag: string): string | undefined => {
@@ -53,8 +54,30 @@ const exitCodeFor = (items: readonly DiagnosticCheck[]): number => {
   if (failures.has("missing_prerequisite")) return EXIT_MISSING_PREREQUISITE;
   return EXIT_OK;
 };
+const nodeVersionSupported = (version: string): boolean => {
+  const actual = version.split(".").map((part) => Number.parseInt(part, 10));
+  for (let index = 0; index < MINIMUM_NODE_VERSION.length; index += 1) {
+    const current = actual[index] ?? 0;
+    const minimum = MINIMUM_NODE_VERSION[index];
+    if (current > minimum) return true;
+    if (current < minimum) return false;
+  }
+  return true;
+};
 
-push({ id: "runtime.node", category: "runtime", ok: true, detail: process.version });
+const supportedNode = nodeVersionSupported(process.versions.node);
+push({
+  id: "runtime.node",
+  category: "runtime",
+  ok: supportedNode,
+  detail: `${process.version} (required >=${MINIMUM_NODE_VERSION.join(".")})`,
+  ...(supportedNode
+    ? {}
+    : {
+        failure: "missing_prerequisite" as const,
+        recovery: `Install Node.js >=${MINIMUM_NODE_VERSION.join(".")} and rerun doctor.`,
+      }),
+});
 
 try {
   const plan = await planProfile(profile);
