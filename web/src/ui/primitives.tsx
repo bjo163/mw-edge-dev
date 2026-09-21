@@ -87,15 +87,19 @@ export function ErrorState({
   requestId,
   onRetry,
   retryLabel = "Try again",
+  diagnostics,
+  diagnosticsLabel = "Technical details",
 }: {
   readonly title: string;
   readonly description: string;
   readonly requestId?: string | null;
   readonly onRetry?: (() => void) | null;
   readonly retryLabel?: string;
+  readonly diagnostics?: ReactNode;
+  readonly diagnosticsLabel?: string;
 }) {
   const id = useId();
-  return <section className="panel error" role="alert" aria-labelledby={id}><h2 id={id}>{title}</h2><p>{description}</p>{requestId && <p><small>Request ID: <code>{requestId}</code></small></p>}{onRetry && <Button onClick={onRetry}>{retryLabel}</Button>}</section>;
+  return <section className="panel error" role="alert" aria-labelledby={id}><h2 id={id}>{title}</h2><p>{description}</p>{requestId && <p><small>Request ID: <code>{requestId}</code></small></p>}{onRetry && <Button onClick={onRetry}>{retryLabel}</Button>}{diagnostics && <details><summary>{diagnosticsLabel}</summary><div>{diagnostics}</div></details>}</section>;
 }
 
 export function EmptyState({
