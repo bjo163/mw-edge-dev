@@ -93,5 +93,12 @@ export function applyNumberedMigrations(
     applied.push(migration.id);
   }
 
-  return { applied, pending: migrations.length - applied.length };
+  const pending = migrations.filter((migration) =>
+    !input.db.get(
+      "SELECT 1 FROM mw_migrations WHERE component_id=? AND migration_id=?",
+      [componentId, migration.id],
+    ),
+  ).length;
+
+  return { applied, pending };
 }

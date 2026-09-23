@@ -1,7 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import {
+  copyFileSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { boot } from "../src/index.js";
@@ -79,6 +88,34 @@ test("restore rejects a tampered backup before creating live database files", as
   }
 });
 
+test("restore rejects a profile mismatch before creating live database files", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mw-edge-restore-profile-mismatch-"));
+  const source = join(root, "source");
+  const backup = join(root, "backup");
+  const restored = join(root, "restored");
+  process.env.MW_BOOTSTRAP_ADMIN_PASSWORD = password;
+
+  try {
+    assert.equal(await loginStatus(source), 200);
+
+    const manifest = await createProfileBackup("standalone-business", source, backup);
+    writeFileSync(
+      join(backup, "manifest.json"),
+      JSON.stringify({ ...manifest, profile: "different-profile" }, null, 2) + "\n",
+      "utf8",
+    );
+
+    await assert.rejects(
+      restoreProfileBackup("standalone-business", backup, restored),
+      /Backup profile mismatch: expected standalone-business, got different-profile/,
+    );
+    assert.equal(existsSync(restored), false);
+  } finally {
+    delete process.env.MW_BOOTSTRAP_ADMIN_PASSWORD;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("backup command snapshots only profile-owned domain databases", async () => {
   const root = mkdtempSync(join(tmpdir(), "mw-edge-backup-command-"));
   const source = join(root, "source");
@@ -126,6 +163,53 @@ test("backup command snapshots only profile-owned domain databases", async () =>
       assert.match(entry.sha256, /^[a-f0-9]{64}$/);
       assert.equal(existsSync(join(backup, entry.file)), true);
     }
+  } finally {
+    delete process.env.MW_BOOTSTRAP_ADMIN_PASSWORD;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("backup command rejects symlinked owned-domain databases", async () => {
+  const root = mkdtempSync(join(tmpdir(), "mw-edge-backup-symlink-"));
+  const source = join(root, "source");
+  const backup = join(root, "backup");
+  const external = join(root, "external.db");
+  process.env.MW_BOOTSTRAP_ADMIN_PASSWORD = password;
+
+  try {
+    assert.equal(await loginStatus(source), 200);
+    const database = readdirSync(source).find((entry) => entry.endsWith(".db"));
+    assert.ok(database);
+
+    const owned = join(source, database);
+    copyFileSync(owned, external);
+    rmSync(owned);
+    symlinkSync(external, owned);
+
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        "scripts/backup.ts",
+        "--profile",
+        "standalone-business",
+        "--data-dir",
+        source,
+        "--output-dir",
+        backup,
+      ],
+      {
+        cwd: process.cwd(),
+        env: { ...process.env, MW_BOOTSTRAP_ADMIN_PASSWORD: password },
+        encoding: "utf8",
+      },
+    );
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Refusing symlinked database for owned domain/);
+    assert.equal(existsSync(backup), false);
+    assert.equal(existsSync(external), true);
   } finally {
     delete process.env.MW_BOOTSTRAP_ADMIN_PASSWORD;
     rmSync(root, { recursive: true, force: true });

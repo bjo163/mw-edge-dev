@@ -31,6 +31,7 @@ const EXIT_OK = 0;
 const EXIT_MISSING_PREREQUISITE = 2;
 const EXIT_INVALID_CONFIGURATION = 3;
 const EXIT_RUNTIME_FAILURE = 4;
+const MINIMUM_NODE_VERSION = [22, 13, 0] as const;
 
 const args = process.argv.slice(2);
 const value = (flag: string): string | undefined => {
@@ -53,8 +54,30 @@ const exitCodeFor = (items: readonly DiagnosticCheck[]): number => {
   if (failures.has("missing_prerequisite")) return EXIT_MISSING_PREREQUISITE;
   return EXIT_OK;
 };
+const nodeVersionSupported = (version: string): boolean => {
+  const actual = version.split(".").map((part) => Number.parseInt(part, 10));
+  for (let index = 0; index < MINIMUM_NODE_VERSION.length; index += 1) {
+    const current = actual[index] ?? 0;
+    const minimum = MINIMUM_NODE_VERSION[index];
+    if (current > minimum) return true;
+    if (current < minimum) return false;
+  }
+  return true;
+};
 
-push({ id: "runtime.node", category: "runtime", ok: true, detail: process.version });
+const supportedNode = nodeVersionSupported(process.versions.node);
+push({
+  id: "runtime.node",
+  category: "runtime",
+  ok: supportedNode,
+  detail: `${process.version} (required >=${MINIMUM_NODE_VERSION.join(".")})`,
+  ...(supportedNode
+    ? {}
+    : {
+        failure: "missing_prerequisite" as const,
+        recovery: `Install Node.js >=${MINIMUM_NODE_VERSION.join(".")} and rerun doctor.`,
+      }),
+});
 
 try {
   const plan = await planProfile(profile);
@@ -95,8 +118,8 @@ try {
 }
 
 try {
-  await access(dataDir, constants.R_OK);
-  push({ id: "storage.data_dir", category: "storage", ok: true, detail: "readable" });
+  await access(dataDir, constants.R_OK | constants.W_OK);
+  push({ id: "storage.data_dir", category: "storage", ok: true, detail: "readable and writable" });
 } catch (error) {
   push({
     id: "storage.data_dir",
@@ -104,11 +127,13 @@ try {
     ok: false,
     detail: errorMessage(error),
     failure: "missing_prerequisite",
-    recovery: "Create or mount the configured data directory and grant the runtime read access.",
+    recovery: "Create or mount the configured data directory and grant the runtime read/write access.",
   });
 }
 
-if (checks.find((check) => check.id === "configuration.profile")?.ok) {
+const profileReady = checks.find((check) => check.id === "configuration.profile")?.ok === true;
+const storageReady = checks.find((check) => check.id === "storage.data_dir")?.ok === true;
+if (profileReady && storageReady) {
   try {
     const integrity = await checkProfileIntegrity(profile, dataDir);
     const failedDomains = integrity.domains.filter((domain) => !domain.ok).map((domain) => domain.domain);

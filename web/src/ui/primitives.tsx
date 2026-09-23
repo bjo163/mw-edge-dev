@@ -10,6 +10,14 @@ import {
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
 
+type FieldControlProps = {
+  readonly id: string;
+  readonly describedBy: string | undefined;
+  readonly errorMessageId: string | undefined;
+  readonly required: boolean;
+  readonly invalid: boolean;
+};
+
 export function Button({ type = "button", ...props }: ButtonProps) {
   return <button type={type} {...props} />;
 }
@@ -29,13 +37,14 @@ export function Field({
   readonly help?: string | null;
   readonly error?: string | null;
   readonly required?: boolean;
-  readonly children: (input: { readonly id: string; readonly describedBy: string | undefined }) => ReactNode;
+  readonly children: (input: FieldControlProps) => ReactNode;
 }) {
   const id = useId();
   const helpId = `${id}-help`;
   const errorId = `${id}-error`;
   const describedBy = [help ? helpId : undefined, error ? errorId : undefined].filter(Boolean).join(" ") || undefined;
-  return <div className="field"><label htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}</label>{children({ id, describedBy })}{help && <small id={helpId} className="field-help">{help}</small>}{error && <small id={errorId} className="field-error" role="alert">{error}</small>}</div>;
+  const invalid = Boolean(error);
+  return <div className="field"><label htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}</label>{children({ id, describedBy, errorMessageId: invalid ? errorId : undefined, required: Boolean(required), invalid })}{help && <small id={helpId} className="field-help">{help}</small>}{error && <small id={errorId} className="field-error" role="alert">{error}</small>}</div>;
 }
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
@@ -72,6 +81,27 @@ export function ErrorSummary({ title = "Please review the errors", errors }: { r
   return <section className="error error-summary" role="alert"><strong>{title}</strong><ul>{errors.map((error, index) => <li key={`${index}-${error}`}>{error}</li>)}</ul></section>;
 }
 
+export function ErrorState({
+  title,
+  description,
+  requestId,
+  onRetry,
+  retryLabel = "Try again",
+  diagnostics,
+  diagnosticsLabel = "Technical details",
+}: {
+  readonly title: string;
+  readonly description: string;
+  readonly requestId?: string | null;
+  readonly onRetry?: (() => void) | null;
+  readonly retryLabel?: string;
+  readonly diagnostics?: ReactNode;
+  readonly diagnosticsLabel?: string;
+}) {
+  const id = useId();
+  return <section className="panel error" role="alert" aria-labelledby={id}><h2 id={id}>{title}</h2><p>{description}</p>{requestId && <p><small>Request ID: <code>{requestId}</code></small></p>}{onRetry && <Button onClick={onRetry}>{retryLabel}</Button>}{diagnostics && <details><summary>{diagnosticsLabel}</summary><div>{diagnostics}</div></details>}</section>;
+}
+
 export function EmptyState({
   title,
   description,
@@ -86,5 +116,5 @@ export function EmptyState({
 }
 
 export function LoadingState({ label = "Loading…" }: { readonly label?: string }) {
-  return <div className="center loading-state" aria-busy="true"><span role="status">{label}</span></div>;
+  return <div className="center loading-state" role="status" aria-live="polite" aria-atomic="true" aria-busy="true">{label}</div>;
 }

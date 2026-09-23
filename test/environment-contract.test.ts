@@ -62,6 +62,30 @@ test("documented runtime security inputs stay tied to production behavior", () =
   assert.ok(docs.includes("Set to `1` to mark the session cookie `Secure`"), "docs must describe MW_COOKIE_SECURE semantics");
 });
 
+test("documented bootstrap credential input stays tied to standalone seeding", () => {
+  const seed = read("plugins/standalone/seed.ts");
+  const docs = read("docs/reference/environment-contract.md");
+
+  assert.match(
+    seed,
+    /process\.env\.MW_BOOTSTRAP_ADMIN_PASSWORD \?\? generateBootstrapPassword\(\)/,
+    "standalone bootstrap must either use the explicit password input or generate a one-time credential",
+  );
+  assert.match(
+    seed,
+    /!process\.env\.MW_BOOTSTRAP_ADMIN_PASSWORD && !context\.memory/,
+    "generated bootstrap credentials must only be persisted when no explicit password was supplied",
+  );
+  assert.ok(
+    docs.includes("`MW_BOOTSTRAP_ADMIN_PASSWORD` | sensitive optional input"),
+    "environment contract must classify MW_BOOTSTRAP_ADMIN_PASSWORD as sensitive optional input",
+  );
+  assert.ok(
+    docs.includes("tests must set an explicit test-only value"),
+    "environment contract must require deterministic tests to provide an explicit bootstrap password",
+  );
+});
+
 test("documented API bind inputs stay tied to server defaults", () => {
   const server = read("src/server.ts");
   const docs = read("docs/reference/environment-contract.md");
@@ -80,4 +104,59 @@ test("documented API bind inputs stay tied to server defaults", () => {
   assert.ok(docs.includes("server defaults to `8788`"), "docs must describe MW_EDGE_PORT default");
   assert.ok(docs.includes("`MW_EDGE_HOST`"), "environment contract must classify MW_EDGE_HOST");
   assert.ok(docs.includes("server defaults to `127.0.0.1`"), "docs must describe MW_EDGE_HOST default");
+});
+
+test("documented runtime selection inputs stay tied to server boot", () => {
+  const server = read("src/server.ts");
+  const docs = read("docs/reference/environment-contract.md");
+
+  assert.match(
+    server,
+    /const profile = process\.env\.MW_PROFILE \?\? "standalone-business"/,
+    "server profile selection must remain explicitly environment-controlled",
+  );
+  assert.match(
+    server,
+    /const dataDir = process\.env\.MW_DATA_DIR \? resolve\(process\.env\.MW_DATA_DIR\) : undefined/,
+    "server data directory must remain explicitly environment-controlled",
+  );
+  assert.match(
+    server,
+    /await boot\(\{ profile, \.\.\.\(dataDir \? \{ dataDir \} : \{\}\) \}\)/,
+    "resolved runtime selection inputs must be passed into boot",
+  );
+  assert.ok(docs.includes("`MW_PROFILE`"), "environment contract must classify MW_PROFILE");
+  assert.ok(docs.includes("default to `standalone-business`"), "docs must describe the server profile default");
+  assert.ok(docs.includes("`MW_DATA_DIR`"), "environment contract must classify MW_DATA_DIR");
+  assert.ok(docs.includes("Overrides the persistent data directory"), "docs must describe MW_DATA_DIR semantics");
+});
+
+test("canonical environment commands remain executable package scripts", () => {
+  const pkg = JSON.parse(read("package.json")) as PackageContract;
+  const docs = read("docs/reference/environment-contract.md");
+  const canonicalScripts = [
+    "readiness",
+    "test",
+    "typecheck",
+    "ui:typecheck",
+    "build",
+    "ui:build",
+    "docs:check",
+    "db:migrate",
+    "factory:reset",
+    "db:reset",
+    "profiles",
+    "plugins:lock:check",
+  ];
+
+  for (const script of canonicalScripts) {
+    assert.ok(pkg.scripts[script], `package.json must expose canonical environment command ${script}`);
+    assert.ok(docs.includes(`pnpm ${script}`), `environment contract must document canonical command pnpm ${script}`);
+  }
+
+  assert.equal(
+    pkg.scripts.readiness,
+    "bash .github/scripts/readiness.sh",
+    "the canonical readiness command must continue delegating to the repository readiness gate",
+  );
 });
